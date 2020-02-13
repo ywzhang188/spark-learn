@@ -25,7 +25,7 @@ sc = SparkContext(conf=conf)
 sqlContext = SQLContext(sc)
 
 # df = sqlContext.read.parquet("file:///root/data-sample-for-glam.snappy.parquet")
-df = sqlContext.read.parquet("hdfs://bigdata1:9000/wc/1.log")
+df = sqlContext.read.parquet("hdfs://bigdata1:9000/carbon_data/sample_data.parquet")
 df.registerTempTable("carbon_data")
 sqlContext.sql("select locations from carbon_data").show(10, truncate=False)
 
