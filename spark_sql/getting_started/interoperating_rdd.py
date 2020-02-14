@@ -2,29 +2,7 @@
 # -*- coding: utf-8 -*-
 # __author__='yzhang'
 
-import os
-from pyspark.sql import SparkSession
-
-SPARK_HOME = '/root/apps/spark-2.4.4-bin-hadoop2.7'
-os.environ['SPARK_HOME'] = SPARK_HOME
-os.environ['JAVA_HOME'] = '/root/apps/jdk1.8.0_221'
-os.environ["PYSPARK_PYTHON"]="/root/python_envs/spark_p37/bin/python3"
-os.environ["PYSPARK_DRIVER_PYTHON"]="/root/python_envs/spark_p37/bin/python3"
-
-# Starting Point: SparkSession
-spark = SparkSession.builder.appName("Read Parquet Data").getOrCreate()
-
-# Untyped Dataset Operations (aka DataFrame Operations)
-df = spark.read.parquet("/carbon_data/sample_data.parquet")
-df.printSchema()
-df.dtypes
-df.select('locations.country', 'synced').show(5, truncate=False)
-df.groupby("devices.os").count().show()
-df.groupby("locations.country", "devices.os").count().show()
-# Register the DataFrame as a SQL temporary view, Running SQL Queries Programmatically
-df.createOrReplaceTempView("carbon_sample")
-sqlDF = spark.sql("select * from carbon_sample limit 1")
-sqlDF.show(1, truncate=False)
+from spark_sql.getting_started.spark_session import *
 
 # interoperating with RDDs
 from pyspark.sql import Row

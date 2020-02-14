@@ -10,6 +10,9 @@ os.environ['SPARK_HOME'] = SPARK_HOME
 os.environ['JAVA_HOME'] = '/root/apps/jdk1.8.0_221'
 os.environ["PYSPARK_PYTHON"]="/root/python_envs/spark_p37/bin/python3"
 os.environ["PYSPARK_DRIVER_PYTHON"]="/root/python_envs/spark_p37/bin/python3"
+local_spark_example_dir = "file://{}/".format(SPARK_HOME)
 
 # Starting Point: SparkSession
 spark = SparkSession.builder.appName("Read Parquet Data").getOrCreate()
+
+
