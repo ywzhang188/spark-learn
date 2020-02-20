@@ -317,4 +317,45 @@ l1NormData = normalizer.transform(dataFrame)
 print("Normalized using L^1 norm")
 l1NormData.show()
 # Normalize each Vector using $L^1\infty$ norm
-lInfNormData = normalizer.transform(dataFrame, {normalizer.})
+lInfNormData = normalizer.transform(dataFrame, {normalizer.p: float("inf")})
+print("Normalized using L^inf norm")
+lInfNormData.show()
+
+# StandardScaler
+scaler = StandardScaler(inputCol="features", outputCol="scaledFeatures", withStd=True, withMean=False)
+scaleredData = scaler.fit(dataFrame).transform(dataFrame)
+scaleredData.show(truncate=False)
+
+# MinMaxScaler
+scaler = MinMaxScaler(inputCol="features", outputCol="scaledFeatures")
+scaledData = scaler.fit(dataFrame).transform(dataFrame)
+scaledData.show(truncate=False)
+
+# MaxAbsScaler
+scaler = MaxAbsScaler(inputCol="features", outputCol="scaledFeatures")
+scaledData = scaler.fit(dataFrame).transform(dataFrame)
+scaledData.show(truncate=False)
+
+# PCA
+from pyspark.ml.feature import PCA
+from pyspark.ml.linalg import Vectors
+
+data = [(Vectors.sparse(5, [(1, 1.0), (3, 7.0)]),),
+        (Vectors.dense([2.0, 0.0, 3.0, 4.0, 5.0]),),
+        (Vectors.dense([4.0, 0.0, 0.0, 6.0, 7.0]),)]
+df = spark.createDataFrame(data, ["features"])
+pca = PCA(k=3, inputCol="features", outputCol="pcaFeatures")
+model = pca.fit(df)
+result = model.transform(df).select("pcaFeatures")
+result.show(truncate=False)
+
+# DCT
+from pyspark.ml.feature import DCT
+from pyspark.ml.linalg import Vectors
+df = spark.createDataFrame([
+    (Vectors.dense([0.0, 1.0, -2.0, 3.0]),),
+    (Vectors.dense([-1.0, 2.0, 4.0, -7.0]),),
+    (Vectors.dense([14.0, -2.0, -5.0, 1.0]),)], ["features"])
+dct = DCT(inverse=False, inputCol="features", outputCol="featuresDCT")
+dctDf = dct.transform(df)
+dctDf.select("featuresDCT").show(truncate=False)
