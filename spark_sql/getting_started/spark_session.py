@@ -15,4 +15,6 @@ local_spark_example_dir = "file://{}/".format("/root/apps/spark-2.4.4-bin-hadoop
 # Starting Point: SparkSession
 spark = SparkSession.builder.appName("Read Parquet Data").getOrCreate()
 
+sc = spark.sparkContext
+
 
