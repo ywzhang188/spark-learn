@@ -9,12 +9,12 @@ from pyspark.ml.feature import VectorIndexer
 from pyspark.ml.evaluation import RegressionEvaluator
 from pyspark.sql import Row
 from pyspark.ml.linalg import Vectors
+import numpy as np
 
-ds = spark.createDataFrame([(1, 2, 3, 10),
-                            (0, 5, 6, 11),
-                            (1, 8, 9, 8),
-                            (2, 3, 7, 12),
-                            (1, 4, 9, 6)], ['x1', 'x2', 'x3', 'y'])
+from sklearn.datasets import load_boston
+X, y = load_boston(True)
+data_array = np.concatenate((X, y.reshape(-1, 1)), axis=1)
+ds = spark.createDataFrame(data_array.tolist(), load_boston().feature_names.tolist().append('target'))
 
 
 def transData(data):

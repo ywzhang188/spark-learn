@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # __author__='yzhang'
 
-from ml.regression.regression_comm import *
+from machine_learning.regression.regression_comm import *
 
 # defime linearRegression class
 from pyspark.ml.regression import LinearRegression
