@@ -63,3 +63,10 @@ ax = sns.boxplot(data=plot_data)
 ax =fig.add_subplot(1, 2, 2)
 ax = sns.violinplot(data = plot_data)
 plt.savefig('./boxplot_and_violinplot.png')
+
+# check data null values
+from pyspark.sql.functions import count
+
+
+def my_count(ds):
+    ds.agg(*[count(c).alias(c) for c in ds.columns]).show()

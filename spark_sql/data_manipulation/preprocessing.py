@@ -97,3 +97,11 @@ def get_dummy(df, indexCol, categoricalCols, continuousCols, labelCol, dropLast=
     elif not indexCol and not labelCol:
         # for unsupervised learning
         return data.select('features')
+
+
+# dealwith the invoiceDate
+from pyspark.sql.functions import to_utc_timestamp, unix_timestamp, lit, datediff, col
+
+timeFmt = "MM/dd/yy HH:mm"
+df = df.withColumn('NewInvoiceDate',
+                   to_utc_timestamp(unix_timestamp(col('InvoiceDate'), timeFmt).cast('timestamp'), 'utc'))
