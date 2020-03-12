@@ -108,7 +108,34 @@ max_bins_list = [15, 10, 8]
 
 metrics = [train_evaluate(trainData, validationData, impurity, maxDepth, maxBins) for impurity in impurity_list for
            maxDepth in max_depth_list for maxBins in max_bins_list]
+bestParameters = sorted(metrics, key=lambda k: k[0], reverse=True)[0]
 
 import pandas as pd
 
 metrics_df = pd.DataFrame(metrics, columns=['AUC', 'duration', 'impurityParm', 'maxDepthParm', 'maxBinsParm', 'model'])
+
+# visualization
+import matplotlib.pyplot as plt
+
+
+def evaluate_plot(df, evalparm, barData, lineData, yMin, yMax):
+    fig, ax1 = plt.subplots()
+    color = 'tab:red'
+    ax1.set_ylim([yMin, yMax])
+    ax1.set_ylabel(barData, fontsize=12, color=color)
+    ax1.bar(df[evalparm].values, df[barData].values, color=color)
+    ax1.set_xticklabels(df[evalparm].values, rotation=30)
+    ax1.tick_params(axis='y', labelcolor=color)
+    ax2 = ax1.twinx()
+    color = 'tab:blue'
+    ax2.set_ylabel(lineData, fontsize=12, color=color)
+    ax2.plot(df[lineData].values, linestyle='-', marker='o', linewidth=2.0, color=color)
+    ax2.tick_params(axis='y', labelcolor=color)
+    plt.savefig('./evaluate.png')
+
+
+metrics_df['impurity'] = metrics_df.impurityParm + metrics_df.index.astype(str)
+evaluate_plot(metrics_df, "impurity", "AUC", "duration", 0.5, 0.7)
+
+# test model on test data
+AUC = evaluate_model(model, testData)
