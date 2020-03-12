@@ -35,10 +35,18 @@ def extract_label(fields):
     label = fields[-1]
     return label
 
-
 from pyspark.mllib.regression import LabeledPoint
 
-labelPointRDD = lines.map(lambda r: LabeledPoint(extract_label(r), extract_features(r, categoriesMap, -1)))
+# labelPointRDD = lines.map(lambda r: LabeledPoint(extract_label(r), extract_features(r, categoriesMap, -1)))
+
+labelRDD = lines.map(lambda r: extract_label(r))
+featureRDD = lines.map(lambda r: extract_features(r, categoriesMap, -1))
+from pyspark.mllib.feature import StandardScaler
+
+stdScaler = StandardScaler(withMean=True, withStd=True).fit(featureRDD)
+ScalerFeatureRDD = stdScaler.transform(featureRDD)
+labelPoint = labelRDD.zip(ScalerFeatureRDD)
+labelPointRDD = labelPoint.map(lambda r: LabeledPoint(r[0], r[1]))
 
 trainData, validationData, testData = labelPointRDD.randomSplit([8, 1, 1])
 
