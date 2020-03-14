@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # __author__='yzhang'
 
-from spark_sql.getting_started.spark_session import *
+from getting_started.spark_session import *
 
 # load csv
 df = spark.read.load("file:///root/datasets/OnlineRetail.csv", format='csv', sep=',',
@@ -22,7 +22,7 @@ df = df.dropna(how='any')
 my_count(df)
 
 # dealwith date
-from pyspark.sql.functions import to_utc_timestamp, unix_timestamp, lit, datediff, col
+from pyspark.sql.functions import to_utc_timestamp, unix_timestamp, lit, col
 
 timeFmt = "MM/dd/yy HH:mm"
 df = df.withColumn('NewInvoiceDate',
@@ -34,7 +34,7 @@ from pyspark.sql.functions import round
 df = df.withColumn('TotalPrice', round(df.Quantity * df.UnitPrice, 2))
 
 # calculate the time difference
-from pyspark.sql.functions import mean, min, max, sum, datediff, to_date
+from pyspark.sql.functions import min, max, sum, datediff
 
 date_max = df.select(max('NewInvoiceDate')).toPandas()
 current = to_utc_timestamp(unix_timestamp(lit(str(date_max.iloc[0][0])), \
@@ -110,7 +110,7 @@ def MScore(x):
         return 1
 
 
-from pyspark.sql.types import StringType, DoubleType
+from pyspark.sql.types import StringType
 import pyspark.sql.functions as F
 
 R_udf = F.udf(lambda x: RScore(x), StringType())
@@ -132,7 +132,6 @@ simple_summary = rfm_seg.groupby('RFMScore').agg({"Recency": "mean", "Frequency"
     F.col('RFMScore'))
 
 # Extension: apply k-means clustering section to do the segmentation
-from pyspark.sql import Row
 from pyspark.ml.linalg import Vectors
 
 

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # __author__='yzhang'
 
-from spark_sql.getting_started.spark_session import *
+from getting_started.spark_session import *
 df = spark.createDataFrame([
     (0, "a", 8, 1),
     (1, "b", 10, 0),

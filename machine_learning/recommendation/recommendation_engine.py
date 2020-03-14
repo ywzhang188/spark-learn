@@ -3,14 +3,12 @@
 # __author__='yzhang'
 
 
-from spark_sql.getting_started.spark_session import *
+from getting_started.spark_session import *
 
 sc = spark.sparkContext
 
 rawUserData = sc.textFile('/test/ratings.dat')
 rawUserData.first()
-
-from pyspark.mllib.recommendation import Rating
 
 rawRatings = rawUserData.map(lambda line: line.split("::")[:3])
 rawRatings.take(5)

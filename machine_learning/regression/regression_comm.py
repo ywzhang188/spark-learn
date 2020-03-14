@@ -2,12 +2,8 @@
 # -*- coding: utf-8 -*-
 # __author__='yzhang'
 
-from spark_sql.getting_started.spark_session import *
-from pyspark.ml import Pipeline
-from pyspark.ml.regression import LinearRegression
+from getting_started.spark_session import *
 from pyspark.ml.feature import VectorIndexer
-from pyspark.ml.evaluation import RegressionEvaluator
-from pyspark.sql import Row
 from pyspark.ml.linalg import Vectors
 import numpy as np
 

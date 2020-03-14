@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # __author__='yzhang'
 
-from spark_sql.getting_started.spark_session import *
+from getting_started.spark_session import *
 import pandas as pd
 import numpy as np
 
@@ -27,7 +27,7 @@ def describe_pd(df_in, columns, deciles=False):
 describe_pd(ds, ['Score'])
 
 # skewness and kurtosis
-from pyspark.sql.functions import col, skewness, kurtosis
+from pyspark.sql.functions import skewness, kurtosis
 var = 'Score'
 ds.select(skewness(var), kurtosis(var)).show()
 

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # __author__='yzhang'
 
-from spark_sql.getting_started.spark_session import *
+from getting_started.spark_session import *
 
 # Manually Specifying Options
 local_spark_example_dir = "file://{}/".format(SPARK_HOME)

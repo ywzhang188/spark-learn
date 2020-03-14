@@ -2,12 +2,8 @@
 # -*- coding: utf-8 -*-
 # __author__='yzhang'
 
-from spark_sql.getting_started.spark_session import *
-from pyspark.ml import Pipeline
-from pyspark.ml.feature import VectorIndexer, IndexToString
-from pyspark.sql import Row
-from pyspark.ml.linalg import Vectors
-import numpy as np
+from getting_started.spark_session import *
+from pyspark.ml.feature import IndexToString
 import pandas as pd
 
 df = pd.DataFrame([[5.1, 3.3, 'A', 1, 't1'],

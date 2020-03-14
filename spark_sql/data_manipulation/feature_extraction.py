@@ -2,9 +2,9 @@
 # -*- coding: utf-8 -*-
 # __author__='yzhang'
 
-from spark_sql.getting_started.spark_session import *
+from getting_started.spark_session import *
 from pyspark.ml import Pipeline
-from pyspark.ml.feature import HashingTF, IDF, Tokenizer, CountVectorizer
+from pyspark.ml.feature import IDF, Tokenizer, CountVectorizer
 
 sentenceData = spark.createDataFrame([
     (0, "Python python Spark Spark"),
@@ -34,7 +34,7 @@ spark.createDataFrame(np.array(list(d.values())).T.tolist(), list(d.keys())).sho
 
 from pyspark.sql.functions import udf
 import pyspark.sql.functions as F
-from pyspark.sql.types import StringType, DoubleType, IntegerType
+from pyspark.sql.types import DoubleType, IntegerType
 from pyspark.sql.types import ArrayType, StringType
 
 indices_udf = udf(lambda vector: vector.indices.tolist(), ArrayType(IntegerType()))

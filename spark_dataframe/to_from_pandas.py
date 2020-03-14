@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # __author__='yzhang'
 
-from spark_sql.getting_started.spark_session import *
+from getting_started.spark_session import *
 
 # enabling for conversion to/from Pandas
 # toPandas()将Spark DataFrame 转换为 Pandas DataFrame

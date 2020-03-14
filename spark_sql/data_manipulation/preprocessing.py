@@ -103,5 +103,5 @@ def get_dummy(df, indexCol, categoricalCols, continuousCols, labelCol, dropLast=
 from pyspark.sql.functions import to_utc_timestamp, unix_timestamp, lit, datediff, col
 
 timeFmt = "MM/dd/yy HH:mm"
-df = df.withColumn('NewInvoiceDate',
+ds = ds.withColumn('NewInvoiceDate',
                    to_utc_timestamp(unix_timestamp(col('InvoiceDate'), timeFmt).cast('timestamp'), 'utc'))

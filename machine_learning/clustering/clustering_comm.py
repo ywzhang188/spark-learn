@@ -2,10 +2,8 @@
 # -*- coding: utf-8 -*-
 # __author__='yzhang'
 
-from spark_sql.getting_started.spark_session import *
-from pyspark.ml import Pipeline
+from getting_started.spark_session import *
 from pyspark.ml.feature import VectorIndexer
-from pyspark.sql import Row
 from pyspark.ml.linalg import Vectors
 import numpy as np
 

@@ -2,12 +2,19 @@
 # -*- coding: utf-8 -*-
 # __author__='yzhang'
 
-from spark_sql.getting_started.spark_session import *
+from getting_started.spark_session import *
 
 # create dataframe from list
 my_list = [['a', 1, 2], ['b', 2, 3], ['c', 3, 4]]
 col_name = ['A', 'B', 'C']
-spark.createDataFrame(my_list, col_name).show()
+ds = spark.createDataFrame(my_list, col_name)
+
+ds[ds['A'], ds['B']].show()
+ds.select(ds.A, ds.B).show()
+ds.select("A", "B").show()
+
+# alias for field
+ds.select("A", "B", (ds["C"] * 2).alias("double_c")).show()
 
 # create dataframe from Dict
 import numpy as np
@@ -75,6 +82,20 @@ ds.drop(*drop_name).show(4)
 # filter
 ds[ds["B"] > 2].show()
 ds[(ds['B'] > 2) & (ds['C'] < 6)].show(4)
+ds.filter("B>2").filter("C<6").show()
+ds.filter((ds.B > 2) & (ds.C < 6)).show()  # can not use "and"
+ds.filter((ds["B"] > 2) & (ds["C"] < 6)).show()  # can not use "and"
+
+# order
+ds.select("A", "B").orderBy("C", ascending=False).show()
+ds.select("A", "B").orderBy(ds.C.desc()).show()
+# multi fields
+ds.select("A").orderBy(["B", "C"], ascending=[0, 1])
+ds.orderBy(ds.B.desc(), ds.A).show()
+
+# distinct
+ds.select('A').distinct().show()
+ds.select('A', 'B').distinct().show()
 
 # with new column
 import pyspark.sql.functions as F
@@ -88,29 +109,31 @@ ds.withColumn('cond', F.when((ds.B > 1) & (ds.C < 5), 1).when(ds.A == 'male', 2)
 
 # join dataframe
 import pandas as pd
+
 leftp = pd.DataFrame({'A': ['A0', 'A1', 'A2', 'A3'],
-                    'B': ['B0', 'B1', 'B2', 'B3'],
-                    'C': ['C0', 'C1', 'C2', 'C3'],
-                    'D': ['D0', 'D1', 'D2', 'D3']},
-                    index=[0, 1, 2, 3])
+                      'B': ['B0', 'B1', 'B2', 'B3'],
+                      'C': ['C0', 'C1', 'C2', 'C3'],
+                      'D': ['D0', 'D1', 'D2', 'D3']},
+                     index=[0, 1, 2, 3])
 
 rightp = pd.DataFrame({'A': ['A0', 'A1', 'A6', 'A7'],
                        'F': ['B4', 'B5', 'B6', 'B7'],
                        'G': ['C4', 'C5', 'C6', 'C7'],
                        'H': ['D4', 'D5', 'D6', 'D7']},
-                       index=[4, 5, 6, 7])
+                      index=[4, 5, 6, 7])
 
 lefts = spark.createDataFrame(leftp)
 rights = spark.createDataFrame(rightp)
 
 # left join
-lefts.join(rights,on='A',how='left').orderBy('A',ascending=True).show()
+lefts.join(rights, on='A', how='left').orderBy('A', ascending=True).show()
+lefts.join(rights, lefts["A"] == rights["A"], "left").show()
 # right join
-lefts.join(rights,on='A',how='right').orderBy('A',ascending=True).show()
+lefts.join(rights, on='A', how='right').orderBy('A', ascending=True).show()
 # inner join
-lefts.join(rights,on='A',how='inner').orderBy('A',ascending=True).show()
+lefts.join(rights, on='A', how='inner').orderBy('A', ascending=True).show()
 # full join
-lefts.join(rights,on='A',how='full').orderBy('A',ascending=True).show()
+lefts.join(rights, on='A', how='full').orderBy('A', ascending=True).show()
 
 # concat columns
 my_list = [('a', 2, 3),
@@ -120,34 +143,42 @@ my_list = [('a', 2, 3),
            ('b', 5, 6),
            ('c', 8, 9)]
 col_name = ['col1', 'col2', 'col3']
-ds = spark.createDataFrame(my_list,schema=col_name)
-ds.withColumn('concat',F.concat('col1','col2')).show()
+ds = spark.createDataFrame(my_list, schema=col_name)
+ds.withColumn('concat', F.concat('col1', 'col2')).show()
 
 # GroupBy
+ds.select("col1").groupBy("col1").count().show()
+ds.groupBy("col1").count().show()
+ds.groupBy("col1", "col2").count().orderBy("col1", "col2").show()
 ds.groupBy(['col1']).agg({'col2': 'min', 'col3': 'avg'}).show()
+
+# crosstab
+ds.stat.crosstab("col1", "col3").show()
 
 # pivot
 ds.groupBy(['col1']).pivot('col2').sum('col3').show()
 
 # Window
-d = {'A':['a','b','c','d'],'B':['m','m','n','n'],'C':[1,2,3,6]}
+d = {'A': ['a', 'b', 'c', 'd'], 'B': ['m', 'm', 'n', 'n'], 'C': [1, 2, 3, 6]}
 dp = pd.DataFrame(d)
 ds = spark.createDataFrame(dp)
 
 from pyspark.sql.window import Window
+
 w = Window.partitionBy('B').orderBy(ds.C.desc())
-ds = ds.withColumn('rank',F.rank().over(w))
+ds = ds.withColumn('rank', F.rank().over(w))
 
 # rank vs dense_rank
-d ={'Id':[1,2,3,4,5,6],
-    'Score': [4.00, 4.00, 3.85, 3.65, 3.65, 3.50]}
+d = {'Id': [1, 2, 3, 4, 5, 6],
+     'Score': [4.00, 4.00, 3.85, 3.65, 3.65, 3.50]}
 data = pd.DataFrame(d)
 ds = spark.createDataFrame(data)
 import pyspark.sql.functions as F
 from pyspark.sql.window import Window
+
 w = Window.orderBy(ds.Score.desc())
-ds = ds.withColumn('Rank_spark_dense',F.dense_rank().over(w))
-ds = ds.withColumn('Rank_spark',F.rank().over(w))
+ds = ds.withColumn('Rank_spark_dense', F.dense_rank().over(w))
+ds = ds.withColumn('Rank_spark', F.rank().over(w))
 ds.show()
 
 # 统计描述

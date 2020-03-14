@@ -2,11 +2,10 @@
 # -*- coding: utf-8 -*-
 # __author__='yzhang'
 
-from spark_sql.getting_started.spark_session import *
+from getting_started.spark_session import *
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-import seaborn as sns
 from pyspark.mllib.stat import Statistics
 
 d = {'class': ['A', 'B', 'C', 'D', 'A', 'C'],

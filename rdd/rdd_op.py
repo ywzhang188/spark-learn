@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # __author__='yzhang'
 
-from spark_sql.getting_started.spark_session import *
+from getting_started.spark_session import *
 
 sc = spark.sparkContext
 
@@ -34,3 +34,26 @@ import pyspark
 intRddMemoryAndDisk = sc.parallelize([3, 1, 2, 5, 5])
 intRddMemoryAndDisk.persist(pyspark.StorageLevel.MEMORY_AND_DISK)
 intRddMemoryAndDisk.is_cached
+
+# filter
+rawDataWithHeader = sc.textFile('/test/train.tsv')
+r_lines = rawDataWithHeader.map(lambda x: x.replace("\"", "")).map(lambda x: x.split("\t"))
+header = r_lines.first()
+lines = r_lines.filter(lambda x: x != header)
+lines_to_rows = lines.map(lambda p: [p[3], list(map(lambda x: float(x) if x != "?" else 0, [p[4]]))[0]])
+lines_to_rows.filter(lambda r: r[0] == "business" and r[1] > 0.7).take(2)
+
+# order ascending
+lines_to_rows.takeOrdered(5, key=lambda x: x[1])
+# order desc
+lines_to_rows.takeOrdered(5, key=lambda x: -1 * x[1])
+# order by multiple fields
+lines_to_rows.takeOrdered(5, key=lambda x: (-x[1], x[0]))
+
+# unique data
+lines_to_rows.map(lambda x: x[0]).distinct().collect()
+# multiple fields distinct
+lines_to_rows.map(lambda x: (x[0], x[1])).distinct().take(10)
+
+# group by
+lines_to_rows.map(lambda x: (x[0], 1)).reduceByKey(lambda x, y: x + y).collect()

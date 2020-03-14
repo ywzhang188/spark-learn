@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # __author__='yzhang'
 
-from spark_sql.getting_started.spark_session import *
+from getting_started.spark_session import *
 from pyspark.ml.feature import Tokenizer, RegexTokenizer
 from pyspark.sql.functions import col, udf
 from pyspark.sql.types import IntegerType
@@ -40,8 +40,7 @@ remover.transform(sentenceData).show(truncate=False)
 
 # NGram
 from pyspark.ml import Pipeline
-from pyspark.ml.feature import CountVectorizer
-from pyspark.ml.feature import HashingTF, IDF, Tokenizer
+from pyspark.ml.feature import IDF, Tokenizer
 from pyspark.ml.feature import NGram
 
 sentenceData = spark.createDataFrame([
@@ -71,7 +70,7 @@ print("Binarizer output with Threhold = %f" % binarizer.getThreshold())
 binarizerDataFrame.show()
 
 # Bucketizer
-from pyspark.ml.feature import QuantileDiscretizer, Bucketizer
+from pyspark.ml.feature import Bucketizer
 
 data = [(0, 18.0), (1, 19.0), (2, 8.0), (3, 5.0), (4, 2.0)]
 df = spark.createDataFrame(data, ["id", "age"])
@@ -81,7 +80,7 @@ result_bucketizer = Bucketizer(splits=splits, inputCol="age", outputCol="result"
 result_bucketizer.show()
 
 # QuantileDiscretizer
-from pyspark.ml.feature import QuantileDiscretizer, Bucketizer
+from pyspark.ml.feature import QuantileDiscretizer
 
 data = [(0, 18.0), (1, 19.0), (2, 8.0), (3, 5.0), (4, 2.0)]
 df = spark.createDataFrame(data, ["id", "age"])
@@ -120,9 +119,7 @@ result.show()
 
 # VectorIndexer
 from pyspark.ml import Pipeline
-from pyspark.ml.regression import LinearRegression
 from pyspark.ml.feature import VectorIndexer
-from pyspark.ml.evaluation import RegressionEvaluator
 from pyspark.ml.feature import RFormula
 
 df = spark.createDataFrame([
