@@ -183,3 +183,28 @@ ds.show()
 
 # 统计描述
 ds.describe().show()
+
+# retype column
+rawDataWithHeader = sc.textFile('/test/train.tsv')
+r_lines = rawDataWithHeader.map(lambda x: x.replace("\"", "")).map(lambda x: x.split("\t"))
+header = r_lines.first()
+lines = r_lines.filter(lambda x: x != header)
+ds_raw = spark.createDataFrame(lines, header)
+# method 1
+from pyspark.sql.functions import col
+
+ds = ds_raw.select(ds_raw.columns[:4] + [col(column).cast("float") for column in ds_raw.columns[4:-1]])
+# method 2
+from pyspark.sql.types import FloatType
+
+for column in ds.columns[4:-1]:
+    ds = ds.withColumn(column, ds_raw[column].cast(FloatType()))
+# method 3
+from pyspark.sql.functions import udf, struct
+from pyspark.sql.types import FloatType
+
+to_float = udf(lambda x: 0 if x == "?" else float(x), FloatType())
+
+from pyspark.sql.functions import col
+
+ds = ds_raw.select([to_float(col(column)).alias(column) for column in ds_raw.columns[4:-1]])

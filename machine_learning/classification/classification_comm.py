@@ -5,6 +5,7 @@
 from getting_started.spark_session import *
 from pyspark.ml.feature import IndexToString
 import pandas as pd
+from pyspark.ml import Pipeline
 
 df = pd.DataFrame([[5.1, 3.3, 'A', 1, 't1'],
                    [4.9, 4.3, 'A', 0.2, 't0'],

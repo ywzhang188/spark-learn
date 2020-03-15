@@ -5,7 +5,7 @@
 from getting_started.spark_session import *
 
 # Manually Specifying Options
-local_spark_example_dir = "file://{}/".format(SPARK_HOME)
+local_spark_example_dir = "file://{}/examples/src/main/resources/".format(SPARK_HOME)
 df = spark.read.load(local_spark_example_dir + "users.parquet")
 # default save to hdfs /usr/root下面
 df.select("name", "favorite_color").write.save("/test/nameAndFavColors.parquet")
@@ -15,6 +15,8 @@ df.select("name", "favorite_color").write.save("/test/nameAndFavColors.parquet")
 # load csv
 df = spark.read.load(local_spark_example_dir + "people.csv", format='csv', sep=';',
                      inferSchema="true", header="true")
+ds = spark.read.format("csv").option("header", "true").option("delimiter", ";").load(
+    local_spark_example_dir + "people.csv")
 # ds = spark.read.csv(local_spark_example_dir + "people.csv", sep=';', header=True)
 
 # run sql on files directly
@@ -27,7 +29,7 @@ df.write.partitionBy("favorite_color").format("parquet").save("namesPartByColor.
 
 df = spark.read.parquet("file:///root/apps/spark-2.4.4-bin-hadoop2.7/examples/src/main/resources/users.parquet")
 (df
-    .write
-    .partitionBy("favorite_color")
-    .bucketBy(42, "name")
-    .saveAsTable("people_partitioned_bucketed"))
+ .write
+ .partitionBy("favorite_color")
+ .bucketBy(42, "name")
+ .saveAsTable("people_partitioned_bucketed"))

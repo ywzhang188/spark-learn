@@ -1,0 +1,6 @@
+
+from pyspark.ml.feature import StringIndexer, OneHotEncoder, VectorAssembler
+StringIndexer: 将文字的分类特征字段转换为数字
+OneHotEncoder: 将一个数值的分类特征字段转换为多个字段的Vector
+VectorAssembler: 将多个特征字段整合成一个Vector的特征字段
+DecisionTreeClassifier: 决策树分类
