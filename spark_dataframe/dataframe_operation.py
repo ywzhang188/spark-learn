@@ -193,18 +193,72 @@ ds_raw = spark.createDataFrame(lines, header)
 # method 1
 from pyspark.sql.functions import col
 
-ds = ds_raw.select(ds_raw.columns[:4] + [col(column).cast("float") for column in ds_raw.columns[4:-1]])
+ds = ds_raw.select(
+    [ds_raw.columns[3]] + [col(column).cast("float") for column in ds_raw.columns[4:-1]] + [ds_raw.columns[-1]])
 # method 2
 from pyspark.sql.types import FloatType
-
 for column in ds.columns[4:-1]:
     ds = ds.withColumn(column, ds_raw[column].cast(FloatType()))
 # method 3
-from pyspark.sql.functions import udf, struct
+from pyspark.sql.functions import udf
+from pyspark.sql.types import StringType
+
+to_float = udf(lambda x: "0" if x == "?" else x, StringType())
+from pyspark.sql.functions import col
+
+ds = ds_raw.select(
+    [ds_raw.columns[3]] + [to_float(col(column)).cast("float").alias(column) for column in ds_raw.columns[4:-1]] + [
+        ds_raw.columns[-1]])
+
+# machine learning process
+ds_raw = spark.read.load("/test/train.tsv", format='csv', sep='\t', inferSchema="true", header="true")
+from pyspark.sql.functions import udf
 from pyspark.sql.types import FloatType
 
 to_float = udf(lambda x: 0 if x == "?" else float(x), FloatType())
-
 from pyspark.sql.functions import col
 
-ds = ds_raw.select([to_float(col(column)).alias(column) for column in ds_raw.columns[4:-1]])
+ds = ds_raw.select([ds_raw.columns[3]] + [to_float(col(column)).alias(column) for column in ds_raw.columns[4:]])
+
+from pyspark.ml.feature import StringIndexer
+
+categoryIndexer = StringIndexer(inputCol="alchemy_category", outputCol="alchemy_category_index")
+categoryTransformer = categoryIndexer.fit(ds)
+df1 = categoryTransformer.transform(ds)
+from pyspark.ml.feature import OneHotEncoder
+
+encoder = OneHotEncoder(dropLast=False, inputCol="alchemy_category_index", outputCol="alchemy_category_index_vector")
+df2 = encoder.transform(df1)
+from pyspark.ml.feature import VectorAssembler
+
+assemblerInput = ['alchemy_category_index_vector'] + ds.columns[1:-1]
+assembler = VectorAssembler(inputCols=assemblerInput, outputCol="features")
+df3 = assembler.transform(df2)
+# deal with categorical label
+from pyspark.ml.feature import StringIndexer
+
+# Index labels, adding metadata to the label column
+labelIndexer = StringIndexer(inputCol='label',
+                             outputCol='indexedLabel').fit(df3)
+df4 = labelIndexer.transform(df3)
+from pyspark.ml.classification import DecisionTreeClassifier
+
+dt = DecisionTreeClassifier(labelCol="indexedLabel", featuresCol="features", impurity="gini", maxDepth=10, maxBins=14)
+dt_model = dt.fit(df4)
+df5 = dt_model.transform(df4)
+# Convert indexed labels back to original labels.
+from pyspark.ml.feature import IndexToString
+
+labelConverter = IndexToString(inputCol="prediction", outputCol="predictedLabel",
+                               labels=labelIndexer.labels)
+df6 = labelConverter.transform(df5)
+df6.crosstab("label", "predictedLabel").show()
+# pipeline
+from pyspark.ml import Pipeline
+
+pipeline = Pipeline(stages=[categoryIndexer, encoder, assembler, labelIndexer, dt, labelConverter])
+pipeline.getStages()
+pipelineModel = pipeline.fit(ds)
+pipelineModel.stages[-2].toDebugString
+predicted = pipelineModel.transform(ds)
+predicted.crosstab("label", "predictedLabel").show()
