@@ -107,6 +107,24 @@ ds.withColumn('D', ds['C'] / ds.groupBy().agg(F.sum("C")).collect()[0][0]).show(
 
 ds.withColumn('cond', F.when((ds.B > 1) & (ds.C < 5), 1).when(ds.A == 'male', 2).otherwise(3)).show(4)
 
+ds = ds.withColumn('new_column',
+                   F.when(F.col('col1') > F.col('col2'), F.col('col1')).otherwise('other_value'))
+
+
+def generate_udf(constant_var):
+    def test(col1, col2):
+        if col1 == col2:
+            return col1
+        else:
+            return constant_var
+
+    return F.udf(test, StringType())
+
+
+ds = ds.withColumn('new_column',
+                   generate_udf('default_value')(F.col('col1'), F.col('col2')))
+
+
 # join dataframe
 import pandas as pd
 

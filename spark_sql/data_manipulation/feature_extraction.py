@@ -56,7 +56,7 @@ rawFeatures.withColumn('indices', indices_udf(F.col('rawFeatures'))) \
 from pyspark.ml.feature import HashingTF, IDF, Tokenizer
 
 tokenizer = Tokenizer(inputCol="sentence", outputCol="words")
-vectorizer  = HashingTF(inputCol="words", outputCol="rawFeatures", numFeatures=5)
+vectorizer = HashingTF(inputCol="words", outputCol="rawFeatures", numFeatures=5)
 idf = IDF(inputCol="rawFeatures", outputCol="features")
 pipeline = Pipeline(stages=[tokenizer, vectorizer, idf])
 model = pipeline.fit(sentenceData)
@@ -75,10 +75,12 @@ result.show(truncate=False)
 w2v = model.stages[1]
 w2v.getVectors().show(truncate=False)
 from pyspark.sql.functions import format_number as fmt
+
 w2v.findSynonyms("could", 2).select("word", fmt("similarity", 5).alias("similarity")).show()
 
 # FeatureHasher
 from pyspark.ml.feature import FeatureHasher
+
 dataset = spark.createDataFrame([
     (2.2, True, "1", "foo"),
     (3.3, False, "2", "bar"),
@@ -92,6 +94,7 @@ featurized.show(truncate=False)
 
 # RFormula
 from pyspark.ml.feature import RFormula
+
 dataset = spark.createDataFrame(
     [(7, "US", 18, 1.0),
      (8, "CA", 12, 0.0),
@@ -105,3 +108,21 @@ formula = RFormula(
 
 output = formula.fit(dataset).transform(dataset)
 output.select("features", "label").show()
+
+# create a new col with multiple cols
+dataset = dataset.withColumn('new_column',
+                             F.when(F.col('col1') > F.col('col2'), F.col('col1')).otherwise('other_value'))
+
+
+def generate_udf(constant_var):
+    def test(col1, col2):
+        if col1 == col2:
+            return col1
+        else:
+            return constant_var
+
+    return F.udf(test, StringType())
+
+
+dataset = dataset.withColumn('new_column',
+                             generate_udf('default_value')(F.col('col1'), F.col('col2')))
