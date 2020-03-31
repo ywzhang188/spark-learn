@@ -79,12 +79,42 @@ ds.withColumnRenamed('C', 'c').show(4)
 drop_name = ['A', 'B']
 ds.drop(*drop_name).show(4)
 
+# add columns
+import pyspark.sql.functions as F
+
+df = df_with_winner.withColumn('testColumn', F.lit('this is a test'))
+
+# drop duplicates
+dropped_df = df.dropDuplicates(subset=['AudienceId'])
+display(dropped_df)
+
 # filter
 ds[ds["B"] > 2].show()
 ds[(ds['B'] > 2) & (ds['C'] < 6)].show(4)
 ds.filter("B>2").filter("C<6").show()
 ds.filter((ds.B > 2) & (ds.C < 6)).show()  # can not use "and"
 ds.filter((ds["B"] > 2) & (ds["C"] < 6)).show()  # can not use "and"
+ds = ds.filter(ds.winner.like('Nat%'))
+df = df.filter(df.gameWinner.isin('Cubs', 'Indians'))
+df.select(df.name, df.age.between(2, 4)).show()
+df.select(df.ip.endswith('0').alias('endswithZero')).show(10)
+df.select(df.name, F.when(df.age > 3, 1).otherwise(0)).show()
+
+# 从StructField中取出嵌套的Row中的值
+from pyspark.sql import Row
+
+df = sc.parallelize([Row(r=Row(a=1, b="b"))]).toDF()
+df.select(df.r.getField("b")).show()
+df.select(df.r.a).show()
+
+# data type
+df.select(df.age.cast("string").alias('ages')).collect()
+df.select(df.age.cast(StringType()).alias('ages')).collect()
+
+# 如果列中的值为list或dict,则根据index或key取相应的值
+df = sc.parallelize([([1, 2], {"key": "value"})]).toDF(["l", "d"])
+df.select(df.l.getItem(0).alias('first of l'), df.d.getItem("key").alias('value of d')).show()
+df.select(df.l[0], df.d["key"]).show()
 
 # order
 ds.select("A", "B").orderBy("C", ascending=False).show()
@@ -153,7 +183,7 @@ lefts.join(rights, on='A', how='inner').orderBy('A', ascending=True).show()
 # full join
 lefts.join(rights, on='A', how='full').orderBy('A', ascending=True).show()
 
-# concat columns
+# concat columns(合并字符串)
 my_list = [('a', 2, 3),
            ('b', 5, 6),
            ('c', 8, 9),
@@ -163,6 +193,7 @@ my_list = [('a', 2, 3),
 col_name = ['col1', 'col2', 'col3']
 ds = spark.createDataFrame(my_list, schema=col_name)
 ds.withColumn('concat', F.concat('col1', 'col2')).show()
+ds.withColumn('concat', F.concat('col1', F.lit(' vs '), 'col2')).show()
 
 # GroupBy
 ds.select("col1").groupBy("col1").count().show()
