@@ -311,3 +311,9 @@ pipelineModel = pipeline.fit(ds)
 pipelineModel.stages[-2].toDebugString
 predicted = pipelineModel.transform(ds)
 predicted.crosstab("label", "predictedLabel").show()
+
+# explode array into row
+df = spark.createDataFrame([(1, "A", [1, 2, 3]), (2, "B", [3, 5])], ["col1", "col2", "col3"])
+from pyspark.sql.functions import explode
+
+df.withColumn("col3", explode(df.col3)).show()
