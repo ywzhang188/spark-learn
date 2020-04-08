@@ -100,6 +100,9 @@ df.select(df.name, df.age.between(2, 4)).show()
 df.select(df.ip.endswith('0').alias('endswithZero')).show(10)
 df.select(df.name, F.when(df.age > 3, 1).otherwise(0)).show()
 
+# sort
+df.sort(F.col('col1').desc())
+
 # 从StructField中取出嵌套的Row中的值
 from pyspark.sql import Row
 
@@ -139,6 +142,13 @@ ds.withColumn('cond', F.when((ds.B > 1) & (ds.C < 5), 1).when(ds.A == 'male', 2)
 
 ds = ds.withColumn('new_column',
                    F.when(F.col('col1') > F.col('col2'), F.col('col1')).otherwise('other_value'))
+
+from pyspark.sql.functions import udf
+from pyspark.sql.types import StringType
+
+maturity_udf = udf(lambda col1: "adult" if col1 > 1 else "child", StringType())
+
+df.withColumn("maturity", maturity_udf(df.col1)).show()
 
 
 def generate_udf(constant_var):
@@ -196,7 +206,7 @@ ds.withColumn('concat', F.concat('col1', 'col2')).show()
 ds.withColumn('concat', F.concat('col1', F.lit(' vs '), 'col2')).show()
 
 # GroupBy
-ds.select("col1").groupBy("col1").count().show()
+ds.select("col1").groupBy("col1").count().sort(F.col('count').desc())
 ds.groupBy("col1").count().show()
 ds.groupBy("col1", "col2").count().orderBy("col1", "col2").show()
 ds.groupBy(['col1']).agg({'col2': 'min', 'col3': 'avg'}).show()
