@@ -323,7 +323,10 @@ predicted = pipelineModel.transform(ds)
 predicted.crosstab("label", "predictedLabel").show()
 
 # explode array into row
-df = spark.createDataFrame([(1, "A", [1, 2, 3]), (2, "B", [3, 5])], ["col1", "col2", "col3"])
-from pyspark.sql.functions import explode
-
-df.withColumn("col3", explode(df.col3)).show()
+df = spark.createDataFrame([(1, "A", [1, 2, 3]), (2, "B", [3, 5]), (8, "B", [3, 6])], ["col1", "col2", "col3"])
+df.withColumn("col3", F.explode(df.col3)).show()
+# groupby word_counts
+df2 = (df.withColumn("word", F.explode("col3")) \
+       .groupBy("col2", "word").count() \
+       .groupBy("col2") \
+       .agg(F.collect_list(F.struct("word", "count")).alias("word_counts")))
