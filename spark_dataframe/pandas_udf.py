@@ -41,3 +41,24 @@ def subtract_mean(pdf):
 
 
 df.groupby('id').apply(subtract_mean).take(2)
+
+# filter col A value while col B max, for each unique in col C
+from pyspark.sql.functions import pandas_udf, PandasUDFType
+from pyspark.sql.types import *
+
+df = spark.createDataFrame(
+    [(1, 1.0, 1), (1, 2.0, 0), (2, 3.0, 1), (2, 5.0, 0), (2, 10.0, 1)],
+    ("id", "v", 'label'))
+
+schema = StructType([StructField('id', LongType()), StructField('v', DoubleType()), StructField('label', LongType())])
+
+
+# @pandas_udf("id long, v double, label long", PandasUDFType.GROUPED_MAP)
+@pandas_udf(schema, PandasUDFType.GROUPED_MAP)
+def max_v_label(pdf):
+    index_of_row = pdf["v"].idxmax()
+    return pdf.iloc[
+           index_of_row:index_of_row + 1]  # stupid hack to return a df and not a series, almost certanly a better way
+
+
+display(df.groupby("id").apply(max_v_label))
