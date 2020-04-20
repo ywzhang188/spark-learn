@@ -62,3 +62,22 @@ def max_v_label(pdf):
 
 
 display(df.groupby("id").apply(max_v_label))
+
+# process list
+
+# load dictionary_json.json from https://github.com/dwyl/english-words
+all_eng_words = {}
+
+
+@pandas_udf(ArrayType(StringType()))
+def _non_english_keywords_filter(v):
+    # Join a column of english of dictionary words, thinking a different list of english words to the word vectors
+    return v.apply(lambda x: list(filter(lambda w: w not in all_eng_words, x)))
+
+
+# test
+df = spark.createDataFrame([("http://ru.osvita.ua/vnz/guide/202", ["202", "vnz", "guide"]),
+                            ("https://www1.kisscartoon.xyz/episode/the-amazing-world-of-gumball-season-5-episode-32",
+                             ["amazing", "world", "gumball", "season", "episode", "32"])], ['url', 'url_keywords'])
+df = df.limit(10).withColumn("non_eng_keywords",
+                             _non_english_keywords_filter(df.url_keywords))
