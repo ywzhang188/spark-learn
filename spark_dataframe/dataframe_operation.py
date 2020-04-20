@@ -133,6 +133,8 @@ ds.select('A', 'B').distinct().show()
 # with new column
 import pyspark.sql.functions as F
 
+df.withColumn("first_two", F.array([F.col("letters")[0], F.col("letters")[1]])).show()
+
 ds.withColumn('D', F.log(ds.C)).show(4)
 ds.withColumn('F10', ds.C + 10).show(4)
 
