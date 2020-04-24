@@ -84,6 +84,10 @@ import pyspark.sql.functions as F
 
 df = df_with_winner.withColumn('testColumn', F.lit('this is a test'))
 
+# merge columns into array
+columns = [F.col("frequency"), F.col("recency")]
+intent_score_carbon = df.withColumn("features", F.array(columns))
+
 # drop duplicates
 dropped_df = df.dropDuplicates(subset=['AudienceId'])
 display(dropped_df)
@@ -212,6 +216,7 @@ ds.select("col1").groupBy("col1").count().sort(F.col('count').desc())
 ds.groupBy("col1").count().show()
 ds.groupBy("col1", "col2").count().orderBy("col1", "col2").show()
 ds.groupBy(['col1']).agg({'col2': 'min', 'col3': 'avg'}).show()
+ds.groupBy('A').agg(F.min('B'), F.max('C'))
 
 # crosstab
 ds.stat.crosstab("col1", "col3").show()
