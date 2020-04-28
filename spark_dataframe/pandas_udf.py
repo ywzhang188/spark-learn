@@ -8,6 +8,7 @@ df.show()
 from pyspark.sql.functions import pandas_udf, PandasUDFType
 from pyspark.sql.types import *
 import pandas as pd
+import pyspark.sql.functions as F
 
 
 # method1
@@ -81,3 +82,30 @@ df = spark.createDataFrame([("http://ru.osvita.ua/vnz/guide/202", ["202", "vnz",
                              ["amazing", "world", "gumball", "season", "episode", "32"])], ['url', 'url_keywords'])
 df = df.limit(10).withColumn("non_eng_keywords",
                              _non_english_keywords_filter(df.url_keywords))
+
+# apply func to row and return multiple columns
+
+schema = StructType(
+    [StructField('scores', ArrayType(FloatType())), StructField('category_ids', ArrayType(StringType()))])
+
+
+def my_func(pdf, N):
+    all_categories = pdf.columns[:-1]
+    pdf = pdf.withColumn("scores", F.array(all_categories)).drop(*all_categories)
+    schema = StructType(
+        [StructField('scores', ArrayType(FloatType())), StructField('category_ids', ArrayType(StringType()))])
+
+    @pandas_udf(schema)
+    def n_scores_categories(pdf):
+        result_df = pdf.apply(lambda row: pd.Series({'scores': list(row[np.argpartition(np.negative(row), N)][:N]),
+                                                     'category_ids': list(
+                                                         np.array(all_categories)[np.argpartition(np.negative(row), N)][
+                                                         :N])}))
+        return result_df
+
+    new_df = pdf.withColumn("Output", F.explode(F.array(n_scores_categories(pdf['scores']))))
+    new_df = new_df.select("word", "Output.*")
+    return new_df
+
+
+display(my_func(df_0, 3))
