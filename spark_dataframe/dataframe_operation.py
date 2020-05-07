@@ -82,7 +82,7 @@ ds.drop(*drop_name).show(4)
 # add columns
 import pyspark.sql.functions as F
 
-df = df_with_winner.withColumn('testColumn', F.lit('this is a test'))
+df = df.withColumn('testColumn', F.lit('this is a test'))
 
 # merge columns into array
 columns = [F.col("frequency"), F.col("recency")]
@@ -91,6 +91,12 @@ intent_score_carbon = df.withColumn("features", F.array(columns))
 # drop duplicates
 dropped_df = df.dropDuplicates(subset=['AudienceId'])
 display(dropped_df)
+# 取交集、差集、并集
+df.select('jymc').dropDuplicates().intersect(df.select('jydfmc').dropDuplicates())  # 交集
+df.select('jymc').dropDuplicates().subtract(df.select('jydfmc').dropDuplicates())  # 差集
+df.select('jymc').dropDuplicates().union(df.select('jydfmc').dropDuplicates())  # 并集
+df.select('jymc').union(df.select('jydfmc')).distinct()  # 并集+去重
+
 
 # filter
 ds[ds["B"] > 2].show()
@@ -103,6 +109,28 @@ df = df.filter(df.gameWinner.isin('Cubs', 'Indians'))
 df.select(df.name, df.age.between(2, 4)).show()
 df.select(df.ip.endswith('0').alias('endswithZero')).show(10)
 df.select(df.name, F.when(df.age > 3, 1).otherwise(0)).show()
+# rlike
+expr = r"Arizona.*hot"
+dk = df.filter(df["keyword"].rlike(expr))
+df.filter("col2 not like 'MSL%' and col2 not like 'HCP%'")
+# where
+df.where(F.col('col1').like("%string%"))
+df.where((F.col("foo") > 0) | (F.col("bar") < 0))
+
+
+# Na, missing value
+df.where(df.col1.isNotNull()).show()
+df.filter(~F.isnull("col1"))
+df.na.drop(subset=["col1"], thresh=2)  # at least 2 non-null values will pass
+df.where(F.col("col1").isNotNull())
+df[df['col1'].isNotNull()]
+# fill na
+df.fillna(0, subset=['col1', 'col2'])
+df.na.fill('wz', subset=['col1', 'col2'])
+
+df.fillna({'a': 0, 'b': 0})
+
+
 
 # sort
 df.sort(F.col('col1').desc())
