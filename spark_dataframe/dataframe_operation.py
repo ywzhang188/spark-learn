@@ -188,6 +188,15 @@ maturity_udf = udf(lambda col1: "adult" if col1 > 1 else "child", StringType())
 
 df.withColumn("maturity", maturity_udf(df.col1)).show()
 
+# time
+from pyspark.sql.functions import month, year, dayofmonth, dayofweek, dayofyear
+
+df.withColumn('year', year('jysj')). \
+    withColumn('month', month('jysj')). \
+    withColumn('day', dayofmonth('jysj')). \
+    withColumn('week', dayofweek('jysj')). \
+    withColumn('day_num', dayofyear('jysj'))  # 获取对应的年，月，日，一周内第几天，一年内第几天
+
 
 def generate_udf(constant_var):
     def test(col1, col2):
