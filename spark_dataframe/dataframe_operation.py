@@ -129,6 +129,10 @@ df.fillna(0, subset=['col1', 'col2'])
 df.na.fill('wz', subset=['col1', 'col2'])
 
 df.fillna({'a': 0, 'b': 0})
+# fill with mean
+mean_val = df.select(F.mean(df['col1'])).collect()
+mean_sales = mean_val[0][0]  # to show the number
+df.na.fill(mean_sales, subset=['col1'])
 
 
 
