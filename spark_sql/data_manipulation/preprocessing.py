@@ -105,3 +105,8 @@ from pyspark.sql.functions import to_utc_timestamp, unix_timestamp, lit, datedif
 timeFmt = "MM/dd/yy HH:mm"
 ds = ds.withColumn('NewInvoiceDate',
                    to_utc_timestamp(unix_timestamp(col('InvoiceDate'), timeFmt).cast('timestamp'), 'utc'))
+
+# analyze missing values counts
+import pyspark.sql.functions as F
+
+df.select([F.count(F.when(F.isnull(c), c)).alias(c) for c in df.columns])
