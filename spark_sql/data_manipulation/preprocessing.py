@@ -109,4 +109,4 @@ ds = ds.withColumn('NewInvoiceDate',
 # analyze missing values counts
 import pyspark.sql.functions as F
 
-df.select([F.count(F.when(F.isnull(c), c)).alias(c) for c in df.columns])
+df.select([F.count(F.when(F.isnull(c) | F.isnan(c), c)).alias(c) for c in df.columns])
