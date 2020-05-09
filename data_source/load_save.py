@@ -33,3 +33,12 @@ df = spark.read.parquet("file:///root/apps/spark-2.4.4-bin-hadoop2.7/examples/sr
  .partitionBy("favorite_color")
  .bucketBy(42, "name")
  .saveAsTable("people_partitioned_bucketed"))
+
+# 写出在一个csv 文件中
+path = "s3://datascience-p-euwest1-carbon/Yuwei/word_interest_similarity"
+df.repartition(1).write.csv(path=path, header=True, sep=",", mode='overwrite', encoding='utf-8')
+# 多个csv
+df.write.csv(path=path, header=True, sep=",", mode='overwrite')
+# 保存为parquet格式数据。读取速度快，占用内存小
+df.select("col1", "col2").write.save("test.parquet")  # 实测
+df.write.parquet(path=path, mode='overwrite')
