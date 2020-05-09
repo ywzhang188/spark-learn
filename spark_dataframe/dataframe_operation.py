@@ -13,7 +13,7 @@ ds[ds['A'], ds['B']].show()
 ds.select(ds.A, ds.B).show()
 ds.select("A", "B").show()
 
-# alias for field
+# alias for field, new column
 ds.select("A", "B", (ds["C"] * 2).alias("double_c")).show()
 
 # create dataframe from Dict
@@ -45,6 +45,10 @@ ds = spark.read.json(local_spark_example_dir + 'people.json')
 
 # first n rows
 ds.show(3)
+ds.first  # 获取第一行记录
+ds.head(n)  # 获取前n行记录
+ds.take(n)  # 获取前n行数据
+ds.takeAsList(n)  # 获取前n行数据，并以List的形式展现
 
 # column names
 ds.columns
@@ -82,7 +86,7 @@ ds.drop(*drop_name).show(4)
 # add columns
 import pyspark.sql.functions as F
 
-df = df.withColumn('testColumn', F.lit('this is a test'))
+df = df.withColumn('testColumn', F.lit('this is a test'))  # add column with constant value
 
 # merge columns into array
 columns = [F.col("frequency"), F.col("recency")]
@@ -96,6 +100,7 @@ df.select('jymc').dropDuplicates().intersect(df.select('jydfmc').dropDuplicates(
 df.select('jymc').dropDuplicates().subtract(df.select('jydfmc').dropDuplicates())  # 差集
 df.select('jymc').dropDuplicates().union(df.select('jydfmc').dropDuplicates())  # 并集
 df.select('jymc').union(df.select('jydfmc')).distinct()  # 并集+去重
+newDF = df.select("sentence").subtract(df2.select("sentence"))
 
 
 # filter
@@ -116,14 +121,15 @@ df.filter("col2 not like 'MSL%' and col2 not like 'HCP%'")
 # where
 df.where(F.col('col1').like("%string%"))
 df.where((F.col("foo") > 0) | (F.col("bar") < 0))
-
+df.where("attr_value = 35 or income = 99")
 
 # Na, missing value
 df.where(df.col1.isNotNull()).show()
 df.filter(~F.isnull("col1"))
-df.na.drop(subset=["col1"], thresh=2)  # at least 2 non-null values will pass
+df.na.drop(subset=["col1", "col2", "col3", "col4"], thresh=2)  # Drop row if it does not have at least two values that are **not** NaN
+df = df.dropna(thresh=len(df.columns)-2)  # drop rows with 2 or more null values.
 df.where(F.col("col1").isNotNull())
-df[df['col1'].isNotNull()]
+df[df['col1'].isNotNull()]  # df.where(df.income.isNull())
 # fill na
 df.fillna(0, subset=['col1', 'col2'])
 df.na.fill('wz', subset=['col1', 'col2'])
@@ -134,7 +140,8 @@ mean_val = df.select(F.mean(df['col1'])).collect()
 mean_sales = mean_val[0][0]  # to show the number
 df.na.fill(mean_sales, subset=['col1'])
 
-
+# 抽样
+t1 = df.sample(False, 0.2, 42)  # 其中withReplacement = True or False代表是否有放回。42是seed
 
 # sort
 df.sort(F.col('col1').desc())
@@ -187,6 +194,12 @@ from pyspark.sql.types import StringType
 maturity_udf = udf(lambda col1: "adult" if col1 > 1 else "child", StringType())
 
 df.withColumn("maturity", maturity_udf(df.col1)).show()
+
+# selectExpr
+from pyspark.sql.types import *
+bucketing = udf(lambda x: 0 if x > 50 else 1, IntegerType())
+spark.udf.register("bucketing", bucketing)
+df.selectExpr("user_id" , "income as new_income" , "bucketing(expenses)" ).show()
 
 # time
 from pyspark.sql.functions import month, year, dayofmonth, dayofweek, dayofyear
