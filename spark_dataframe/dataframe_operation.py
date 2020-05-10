@@ -149,9 +149,9 @@ df.sort(F.col('col1').desc())
 # 从StructField中取出嵌套的Row中的值
 from pyspark.sql import Row
 
-df = sc.parallelize([Row(r=Row(a=1, b="b"))]).toDF()
-df.select(df.r.getField("b")).show()
-df.select(df.r.a).show()
+df = sc.parallelize([Row(col1=Row(a=1, b="b"))]).toDF()
+df.select(df.col1.getField("b")).show()
+df.select(df.col1.a).show()
 
 # data type
 df.select(df.age.cast("string").alias('ages')).collect()
