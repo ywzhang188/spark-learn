@@ -24,6 +24,13 @@ d = {'A': [0, 1, 0],
      'C': [1, 0, 0]}
 spark.createDataFrame(np.array(list(d.values())).T.tolist(), list(d.keys())).show()
 
+# create dataframe with Row
+from pyspark.sql import Row
+row = Row("col1", "col2")
+x = ['A', 'B']
+y = [1, 2]
+new_df = sc.parallelize([row(x[i], y[i]) for i in range(2)]).toDF()
+
 # load datafram from database
 # connect to database
 host = '##.###.###.##'
