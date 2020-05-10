@@ -111,7 +111,7 @@ ds.filter((ds.B > 2) & (ds.C < 6)).show()  # can not use "and"
 ds.filter((ds["B"] > 2) & (ds["C"] < 6)).show()  # can not use "and"
 ds = ds.filter(ds.winner.like('Nat%'))
 df = df.filter(df.gameWinner.isin('Cubs', 'Indians'))
-df.select(df.name, df.age.between(2, 4)).show()
+df.select(df.name, df.age.between(2, 4).alias("if_between_2_and_4")).show()  # 此处between返回的是True/False, 增加新列，并未筛选
 df.select(df.ip.endswith('0').alias('endswithZero')).show(10)
 df.select(df.name, F.when(df.age > 3, 1).otherwise(0)).show()
 # rlike
@@ -199,7 +199,7 @@ df.withColumn("maturity", maturity_udf(df.col1)).show()
 from pyspark.sql.types import *
 bucketing = udf(lambda x: 0 if x > 50 else 1, IntegerType())
 spark.udf.register("bucketing", bucketing)
-df.selectExpr("user_id" , "income as new_income" , "bucketing(expenses)" ).show()
+df.selectExpr("user_id", "income as new_income", "bucketing(expenses)" ).show()
 
 # time
 from pyspark.sql.functions import month, year, dayofmonth, dayofweek, dayofyear
