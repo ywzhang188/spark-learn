@@ -308,6 +308,15 @@ ds = ds.withColumn('Rank_spark_dense', F.dense_rank().over(w))
 ds = ds.withColumn('Rank_spark', F.rank().over(w))
 ds.show()
 
+# row number window
+
+F.row_number().over(
+    Window.partitionBy("col1").orderBy(F.col("unit_count").desc())
+)
+df.withColumn("row_num", F.row_number().over(Window.partitionBy("col2").orderBy("Date")))
+
+
+
 # 统计描述
 ds.describe().show()
 
