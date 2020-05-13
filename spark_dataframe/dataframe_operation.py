@@ -128,6 +128,8 @@ df.filter("col2 not like 'MSL%' and col2 not like 'HCP%'")
 
 expr = r"(?i).*archant.*"
 df = df.filter(df["script_id"].rlike(expr))
+# contains
+df.filter(F.col("long_text").contains(F.col("number")))
 # where
 df.where(F.col('col1').like("%string%"))
 df.where((F.col("foo") > 0) | (F.col("bar") < 0))
