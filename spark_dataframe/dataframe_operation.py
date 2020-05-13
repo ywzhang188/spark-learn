@@ -125,6 +125,9 @@ df.select(df.name, F.when(df.age > 3, 1).otherwise(0)).show()
 expr = r"Arizona.*hot"
 dk = df.filter(df["keyword"].rlike(expr))
 df.filter("col2 not like 'MSL%' and col2 not like 'HCP%'")
+
+expr = r"(?i).*archant.*"
+df = df.filter(df["script_id"].rlike(expr))
 # where
 df.where(F.col('col1').like("%string%"))
 df.where((F.col("foo") > 0) | (F.col("bar") < 0))
@@ -216,6 +219,8 @@ df.withColumn('year', year('jysj')). \
     withColumn('day', dayofmonth('jysj')). \
     withColumn('week', dayofweek('jysj')). \
     withColumn('day_num', dayofyear('jysj'))  # 获取对应的年，月，日，一周内第几天，一年内第几天
+# date from timestamp
+df = df.withColumn("date_only", F.to_date(F.col("DateTime")))
 
 
 def generate_udf(constant_var):
