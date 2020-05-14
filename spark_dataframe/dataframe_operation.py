@@ -135,6 +135,9 @@ df.where(F.col('col1').like("%string%"))
 df.where((F.col("foo") > 0) | (F.col("bar") < 0))
 df.where("attr_value = 35 or income = 99")
 
+# nested, struct field
+df.where(df["x.y.z"] != df["v"])
+
 # Na, missing value
 df.where(df.col1.isNotNull()).show()
 df.filter(~F.isnull("col1"))
