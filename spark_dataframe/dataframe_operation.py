@@ -302,6 +302,7 @@ ds.groupBy("col1").count().show()
 ds.groupBy("col1", "col2").count().orderBy("col1", "col2").show()
 ds.groupBy(['col1']).agg({'col2': 'min', 'col3': 'avg'}).show()
 ds.groupBy('A').agg(F.min('B'), F.max('C'))
+ds.groupBy("year").agg(F.countDistinct("id"))
 
 # crosstab
 ds.stat.crosstab("col1", "col3").show()
