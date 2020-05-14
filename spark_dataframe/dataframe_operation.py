@@ -409,6 +409,8 @@ predicted.crosstab("label", "predictedLabel").show()
 # explode array into row
 df = spark.createDataFrame([(1, "A", [1, 2, 3]), (2, "B", [3, 5]), (8, "B", [3, 6])], ["col1", "col2", "col3"])
 df.withColumn("col3", F.explode(df.col3)).show()
+# multiple columns into one
+df1 = (df.withColumn("word", F.struct("col1", "col2").alias("new_col")))
 # groupby word_counts
 df2 = (df.withColumn("word", F.explode("col3")) \
        .groupBy("col2", "word").count() \
