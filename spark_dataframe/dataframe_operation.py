@@ -322,7 +322,10 @@ F.row_number().over(
 )
 df.withColumn("row_num", F.row_number().over(Window.partitionBy("col2").orderBy("Date")))
 
-
+# add index column
+from pyspark.sql.window import Window
+w = Window.orderBy("myColumn")
+withIndexDF = df.withColumn("index", F.row_number().over(w))
 
 # 统计描述
 ds.describe().show()
