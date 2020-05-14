@@ -53,3 +53,25 @@ from pyspark.sql.functions import collect_list
  .agg(collect_list("message").alias("message"))
  .withColumn("message", unpack_udf("message"))
  .withColumn("message", count_udf("message"))).show(truncate=False)
+
+# groupby agg
+from pyspark.sql import functions as F
+
+a = sc.parallelize([[1, 1, 'a'],
+                    [1, 2, 'a'],
+                    [1, 1, 'b'],
+                    [1, 2, 'b'],
+                    [2, 1, 'c']]).toDF(['id', 'value1', 'value2'])
+def find_a(x):
+    """Count 'a's in list."""
+    output_count = 0
+    for i in x:
+        if i == 'a':
+          output_count += 1
+    return output_count
+
+find_a_udf = F.udf(find_a, IntegerType())
+# count a in list
+a.groupBy('id').agg(find_a_udf(F.collect_list('value2')).alias('a_count')).show()
+# filter data if value1==1, then count a in list
+a.groupBy('id').agg(find_a_udf(F.collect_list(F.when(F.col('value1') == 1, F.col('value2')))).alias('a_count')).show()
