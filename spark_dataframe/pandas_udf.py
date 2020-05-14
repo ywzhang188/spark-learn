@@ -64,6 +64,22 @@ def max_v_label(pdf):
 
 display(df.groupby("id").apply(max_v_label))
 
+# groupby key, calculate mean value of rows of min([A, B])
+schema = StructType([
+    StructField("key", StringType()),
+    StructField("avg_minOfValue1AndValue2", DoubleType())
+])
+
+@pandas_udf(schema, functionType=PandasUDFType.GROUPED_MAP)
+def g(df):
+    result = pd.DataFrame(df.groupby("key").apply(
+        lambda x: x.loc[:, ["value1", "value2"]].min(axis=1).mean()
+    ), columns=['avg_minOfValue1AndValue2'])
+    result.reset_index(inplace=True, drop=False)
+    return result
+df.groupby("key").apply(g).show()
+
+
 # process list
 
 # load dictionary_json.json from https://github.com/dwyl/english-words
