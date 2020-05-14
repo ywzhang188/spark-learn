@@ -158,6 +158,22 @@ t1 = df.sample(False, 0.2, 42)  # 其中withReplacement = True or False代表是
 # sort
 df.sort(F.col('col1').desc())
 
+# calculate column percentile
+df.selectExpr('percentile(col1, 0.95)').show()
+
+# groupby percentile
+from pyspark.sql import Window
+import pyspark.sql.functions as F
+# method 0
+grp_window = Window.partitionBy('col1')
+magic_percentile = F.expr('percentile_approx(col2, 0.5)')
+# magic_percentile = F.expr('percentile_approx(col2, array(0.25, 0.5, 0.75))')
+df.withColumn('med_col2', magic_percentile.over(grp_window))
+# method 1
+df.groupBy('col1').agg(magic_percentile.alias('med_col2'))
+
+
+
 # 从StructField中取出嵌套的Row中的值
 from pyspark.sql import Row
 
