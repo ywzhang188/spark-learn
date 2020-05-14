@@ -160,6 +160,7 @@ df.sort(F.col('col1').desc())
 
 # calculate column percentile
 df.selectExpr('percentile(col1, 0.95)').show()
+df.approxQuantile(["income", "expenses", "user_id"], [0.5], 0.25)
 
 # groupby percentile
 from pyspark.sql import Window
