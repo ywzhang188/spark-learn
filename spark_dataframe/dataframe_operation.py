@@ -341,7 +341,7 @@ ds.show()
 F.row_number().over(
     Window.partitionBy("col1").orderBy(F.col("unit_count").desc())
 )
-df.withColumn("row_num", F.row_number().over(Window.partitionBy("col2").orderBy("Date")))
+df.withColumn("row_num", F.row_number().over(Window.partitionBy("col2").orderBy("Date"))-1) # start from 0
 
 # add index column
 from pyspark.sql.window import Window
