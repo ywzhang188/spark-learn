@@ -109,6 +109,12 @@ df.select('jymc').dropDuplicates().union(df.select('jydfmc').dropDuplicates())  
 df.select('jymc').union(df.select('jydfmc')).distinct()  # 并集+去重
 newDF = df.select("sentence").subtract(df2.select("sentence"))
 
+# timestamp difference seconds
+(df.groupBy('sid').agg(F.countDistinct("page_visit_id").alias('count_unique_pv'),
+                      F.min("start_time").alias("sid_start_time"),
+                      F.max("end_time").alias("sid_end_time"))\
+    .withColumn("DiffInSeconds", F.col("sid_end_time").cast("long") - F.col("sid_start_time").cast("long")))
+
 
 # filter
 ds[ds["B"] > 2].show()
