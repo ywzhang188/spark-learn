@@ -347,6 +347,10 @@ df.withColumn("row_num", F.row_number().over(Window.partitionBy("col2").orderBy(
 from pyspark.sql.window import Window
 w = Window.orderBy("myColumn")
 withIndexDF = df.withColumn("index", F.row_number().over(w))
+# method2
+df.select('key', 'value1', 'value2', F.row_number().over(
+    Window.partitionBy("key").orderBy(F.col("value1").desc())
+).alias("index")).show()  # add index col
 
 # 统计描述
 ds.describe().show()
