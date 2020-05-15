@@ -95,7 +95,7 @@ import pyspark.sql.functions as F
 
 df = df.withColumn('testColumn', F.lit('this is a test'))  # add column with constant value
 
-# merge columns into array
+# merge columns into array, multiple columns into list
 columns = [F.col("frequency"), F.col("recency")]
 intent_score_carbon = df.withColumn("features", F.array(columns))
 

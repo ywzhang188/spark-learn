@@ -64,7 +64,7 @@ def max_v_label(pdf):
 
 display(df.groupby("id").apply(max_v_label))
 
-# groupby key, calculate mean value of rows of min([A, B])
+# groupby key, calculate mean value of rows of min([A, B]), method 1
 schema = StructType([
     StructField("key", StringType()),
     StructField("avg_minOfValue1AndValue2", DoubleType())
@@ -78,6 +78,14 @@ def g(df):
     result.reset_index(inplace=True, drop=False)
     return result
 df.groupby("key").apply(g).show()
+
+# groupby key, calculate mean value of rows of min([A, B]), method 2
+import numpy as np
+
+@pandas_udf(DoubleType(), functionType=PandasUDFType.GROUPED_AGG)
+def f(x, y):
+    return np.minimum(x, y).mean()
+df.groupBy("key").agg(f("value1", "value2").alias("avg_min")).show()
 
 
 # process list
