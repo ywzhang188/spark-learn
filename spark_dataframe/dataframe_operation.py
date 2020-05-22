@@ -99,6 +99,12 @@ df = df.withColumn('testColumn', F.lit('this is a test'))  # add column with con
 columns = [F.col("frequency"), F.col("recency")]
 intent_score_carbon = df.withColumn("features", F.array(columns))
 
+# transpose row into column 转置, 多行转多列
+df = spark.createDataFrame([(15,399,2), (15,1401,5), (15,1608,4),
+                            (15,20,4), (18,100,3), (18,1401,3)], ["userID","movieID","rating"])
+df.groupBy("userID").pivot("movieID").agg(F.first(F.col("rating"))).show()
+
+
 # drop duplicates
 dropped_df = df.dropDuplicates(subset=['AudienceId'])
 display(dropped_df)
