@@ -99,10 +99,25 @@ df = df.withColumn('testColumn', F.lit('this is a test'))  # add column with con
 columns = [F.col("frequency"), F.col("recency")]
 intent_score_carbon = df.withColumn("features", F.array(columns))
 
-# transpose row into column 转置, 多行转多列
+# transpose row into column 转置, 多行转多列，透视，转换成宽数据
 df = spark.createDataFrame([(15,399,2), (15,1401,5), (15,1608,4),
                             (15,20,4), (18,100,3), (18,1401,3)], ["userID","movieID","rating"])
 df.groupBy("userID").pivot("movieID").agg(F.first(F.col("rating"))).show()
+pivot_df = df.groupBy('userID').pivot('movieID', ['20', '100']).agg(F.sum('rating')).fillna(0)  # 部分透视
+# 反透视, 多列转多行， unpivot, 转换成长数据
+def to_long(df, by, key, val):
+
+    # Filter dtypes and split into column names and type description
+    cols, dtypes = zip(*((c, t) for (c, t) in df.dtypes if c not in by))
+    # Spark SQL supports only homogeneous columns
+    assert len(set(dtypes)) == 1, "All columns have to be of the same type"
+
+    # Create and explode an array of (column_name, column_value) structs
+    kvs = F.explode(F.array([F.struct(F.lit(c).alias(key), F.col(c).alias(val)) for c in cols])).alias("kvs")
+
+    return df.select(by + [kvs]).select(by + ["kvs.{}".format(key), "kvs.{}".format(val)]).filter(~F.isnull(val))
+
+to_long(pivot_df, ["userID"], 'movieID', 'rating').show()
 
 
 # drop duplicates
