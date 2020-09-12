@@ -110,3 +110,6 @@ ds = ds.withColumn('NewInvoiceDate',
 import pyspark.sql.functions as F
 
 df.select([F.count(F.when(F.isnull(c) | F.isnan(c), c)).alias(c) for c in df.columns])
+
+# remove blank string
+df = df.filter("colName != ''")
