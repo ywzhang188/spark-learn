@@ -185,6 +185,9 @@ df.na.fill(mean_sales, subset=['col1'])
 # 抽样
 t1 = df.sample(False, 0.2, 42)  # 其中withReplacement = True or False代表是否有放回。42是seed
 
+# collect column values to list
+df.select(F.collect_list("module_num")).collect()[0][0]
+
 # sort
 df.sort(F.col('col1').desc())
 
