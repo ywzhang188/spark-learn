@@ -12,6 +12,7 @@ data = pd.DataFrame(d)
 ds = spark.createDataFrame(data)
 
 ds.select('Score').describe().show()
+# 描述性统计
 def describe_pd(df_in, columns, deciles=False):
     if deciles:
         percentiles = np.array(range(0, 110, 10))
