@@ -25,3 +25,10 @@ pca_model = ft.PCA(k=6, inputCol = "final_features", outputCol = "pca_features")
 pipeline = Pipeline(stages=indexers + encoders + [assembler_onehot, assembler_numeric, std_scaler, assembler_final, pca_model])
 preprocess_model = pipeline.fit(df)
 scaledData = preprocess_model.transform(df)
+
+# 保存和加载模型，save model load model
+from pyspark.ml import PipelineModel
+outpath = "/dbfs/classification_models/model-maxDepth{}-maxBins{}".format(MAXDEPTH, MAXBINS)
+
+pipelineModel.write().overwrite().save(outpath)
+model_in = PipelineModel.load(outpath)
