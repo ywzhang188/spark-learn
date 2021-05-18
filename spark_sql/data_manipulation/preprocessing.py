@@ -114,7 +114,7 @@ df.select([F.count(F.when(F.isnull(c) | F.isnan(c), c)).alias(c) for c in df.col
 # remove blank string
 df = df.filter("colName != ''")
 
-# calculate outlier
+# calculate outlier, drop outlier
 cols = numeric_features
 bounds = {}
 for col in cols:
@@ -125,3 +125,6 @@ for col in cols:
         quantiles[1] + 1.5*IQR
     ]
 print(bounds)
+
+outlier_expr = reduce(and_, [F.col(c) < bounds[c][1] for c in outlier_cols])
+df = df.where(outlier_expr)
