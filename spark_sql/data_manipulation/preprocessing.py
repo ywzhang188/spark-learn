@@ -113,3 +113,15 @@ df.select([F.count(F.when(F.isnull(c) | F.isnan(c), c)).alias(c) for c in df.col
 
 # remove blank string
 df = df.filter("colName != ''")
+
+# calculate outlier
+cols = numeric_features
+bounds = {}
+for col in cols:
+    quantiles = df.approxQuantile(col,[0.25,0.75], 0.05)
+    IQR = quantiles[1] - quantiles[0]
+    bounds[col] = [
+        quantiles[0] - 1.5*IQR,
+        quantiles[1] + 1.5*IQR
+    ]
+print(bounds)
