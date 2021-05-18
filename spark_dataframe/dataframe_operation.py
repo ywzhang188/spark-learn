@@ -16,6 +16,9 @@ ds.select("A", "B").show()
 # alias for field, new column
 ds.select("A", "B", (ds["C"] * 2).alias("double_c")).show()
 
+# alias, df columns=['id', 'A', 'B'], cols = ['A', 'B'], return ['id', 'A_o', 'B_o']
+df.select(*['id']+[((df[c] < bounds[c][0]) | (df[c]>bounds[c][1])).alias(c+'_o') for c in cols])
+
 # create dataframe from Dict
 import numpy as np
 
