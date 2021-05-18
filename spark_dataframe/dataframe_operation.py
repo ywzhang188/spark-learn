@@ -165,6 +165,14 @@ df.where("attr_value = 35 or income = 99")
 # nested, struct field
 df.where(df["x.y.z"] != df["v"])
 
+# for loop in filter
+from functools import reduce
+from operator import and_
+bounds = {'csf_tmsale_1m_pctatm': [-265.90000000000003, 507.70000000000005],
+            'csf_tmsale_2m_pctatm': [-395.00000000000006, 811.4000000000001], 'csf_tmsale_3m_pctatm': [-192.5, 575.5]}
+outlier_expr  = reduce(and_, [F.col(c) < bounds[c][1] for c in bounds])
+new_df = df.where(outlier_expr)
+
 # count na 统计缺失值
 df.select(*(F.sum(F.col(c).isNull().cast("int")).alias(c) for c in df.columns))
 
