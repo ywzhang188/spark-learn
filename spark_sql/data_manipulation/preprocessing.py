@@ -128,3 +128,11 @@ print(bounds)
 
 outlier_expr = reduce(and_, [F.col(c) < bounds[c][1] for c in outlier_cols])
 df = df.where(outlier_expr)
+
+# calculate outlier, 3 sigma, standard deviation
+# df.select(
+#     [F.mean(c).alias(c+'_mean') for c in outlier_cols]+[F.stddev(c).alias(c+'_std') for c in outlier_cols]
+# ).collect()
+df.select(
+    [(F.mean(c)+3*F.stddev(c)).alias(c+'_ceil') for c in outlier_cols]
+).show()
