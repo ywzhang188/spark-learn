@@ -136,3 +136,7 @@ df = df.where(outlier_expr)
 df.select(
     [(F.mean(c)+3*F.stddev(c)).alias(c+'_ceil') for c in outlier_cols]
 ).show()
+
+# 根据条件给数据打标签
+df.select(*bounds,
+          *[F.when(~F.col(c).between(bounds[c]['min'], bounds[c]['max']), "yes").otherwise("no").alias(c+'_outlier') for c in bounds])
