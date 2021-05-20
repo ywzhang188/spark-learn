@@ -60,3 +60,6 @@ plt.title("demo")
 plt.show()
 
 # numerical vs catgorical
+
+# count distinct value for each column, 统计每个列的个数
+df.agg(*(F.countDistinct(F.col(c)).alias(c) for c in nomial_features)).show()
