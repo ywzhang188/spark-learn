@@ -140,3 +140,8 @@ df.select(
 # 根据条件给数据打标签
 df.select(*bounds,
           *[F.when(~F.col(c).between(bounds[c]['min'], bounds[c]['max']), "yes").otherwise("no").alias(c+'_outlier') for c in bounds])
+
+# cut feature into bins, bucketizer, buckets, discretization
+from pyspark.ml.feature import Bucketizer
+bucketizer = Bucketizer(splits=[ 0, 6, 18, 60, float('Inf') ],inputCol="ages", outputCol="buckets")
+df_buck = bucketizer.setHandleInvalid("keep").transform(df)
