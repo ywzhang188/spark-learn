@@ -145,3 +145,10 @@ df.select(*bounds,
 from pyspark.ml.feature import Bucketizer
 bucketizer = Bucketizer(splits=[ 0, 6, 18, 60, float('Inf') ],inputCol="ages", outputCol="buckets")
 df_buck = bucketizer.setHandleInvalid("keep").transform(df)
+
+# bins, method2
+from functools import reduce
+splits = [0, 5, 9, 10, 11]
+splits = list(enumerate(splits))  # [(0, 0), (1, 5), (2, 9), (3, 10), (4, 11)]
+bins = reduce(lambda c, i: c.when(F.col('Age') <= i[1], i[0]), splits, F.when(F.col('Age') < splits[0][0], None)).otherwise(splits[-1][0] + 1).alias('bins')
+df = df.select('age', bins)
