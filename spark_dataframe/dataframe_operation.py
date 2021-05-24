@@ -235,6 +235,10 @@ df.select(df.col1.a).show()
 df.select(df.age.cast("string").alias('ages')).collect()
 df.select(df.age.cast(StringType()).alias('ages')).collect()
 
+for i in numeric_features:
+    new_df = new_df.withColumn(i+'_buckets', F.col(i+'_buckets').cast(IntegerType()).cast(StringType()))
+
+
 # 如果列中的值为list或dict,则根据index或key取相应的值
 df = sc.parallelize([([1, 2], {"key": "value"})]).toDF(["l", "d"])
 df.select(df.l.getItem(0).alias('first of l'), df.d.getItem("key").alias('value of d')).show()

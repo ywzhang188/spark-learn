@@ -92,6 +92,11 @@ bucketizer = qds.fit(df)
 bucketizer.transform(df).show()
 bucketizer.setHandleInvalid("skip").transform(df).show()
 
+discretizers = [ft.QuantileDiscretizer(inputCol=c, outputCol="{}_buckets".format(c))
+                for c in numeric_features]
+# discretizers = ft.QuantileDiscretizer(numBuckets=3,inputCols=numeric_features, outputCols=["{}_buckets".format(c) for c in numeric_features])
+
+
 # StringIndexer
 from pyspark.ml.feature import StringIndexer
 
