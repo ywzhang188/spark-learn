@@ -361,3 +361,16 @@ df = spark.createDataFrame([
 dct = DCT(inverse=False, inputCol="features", outputCol="featuresDCT")
 dctDf = dct.transform(df)
 dctDf.select("featuresDCT").show(truncate=False)
+
+# map value from dict to column
+from itertools import chain
+
+map_dict = {'cpp_base_ulevel':{'注册会员':0, '铜牌会员':1, '银牌会员':2, '金牌会员':3, '钻石会员':4, '易迅会员':4, 'VIP会员':5},
+            'cgp_cust_purchpower':{'-1':0, '1':1, '2':2, '3':3, '4':4, '5':5},
+            'csf_saletm_last_login_tm':{'-1':0, '一个月':5, '两个月':4, '三个月':3, '六个月':2, '半年及以上':1 }}
+
+mapping_exprs = [F.create_map([F.lit(x) for x in chain(*map_dict[col].items())]) for col in map_dict]
+
+new_df = new_df.withColumn('cpp_base_ulevel', mapping_exprs[0][new_df['cpp_base_ulevel']]) \
+    .withColumn('cgp_cust_purchpower', mapping_exprs[1][new_df['cgp_cust_purchpower']]) \
+    .withColumn('csf_saletm_last_login_tm', mapping_exprs[2][new_df['csf_saletm_last_login_tm']])
