@@ -152,3 +152,42 @@ splits = [0, 5, 9, 10, 11]
 splits = list(enumerate(splits))  # [(0, 0), (1, 5), (2, 9), (3, 10), (4, 11)]
 bins = reduce(lambda c, i: c.when(F.col('Age') <= i[1], i[0]), splits, F.when(F.col('Age') < splits[0][0], None)).otherwise(splits[-1][0] + 1).alias('bins')
 df = df.select('age', bins)
+
+# 基于聚类的特征处理，根据数据本身的特性，对特征进行聚类
+from pyspark.ml.evaluation import ClusteringEvaluator
+
+feature_result = {}
+bounds_col = {}
+
+for col in numeric_features:
+
+    # 计算特征的异常阈值
+    quantiles = new_df.approxQuantile(col,[0.25,0.75], 0.05)
+    IQR = quantiles[1] - quantiles[0]
+    bounds_col[col] = [
+        quantiles[0] - 1.5*IQR,
+        quantiles[1] + 1.5*IQR
+    ]
+    print("col: {}, floor: {}, ceil: {}".format(col, bounds_col[col][0], bounds_col[col][1]))
+
+    # 根据阈值筛选数据，剔除异常值后再聚类
+    temp_data = new_df.select(col).where(F.col(col) < bounds_col[col][1])
+
+    assembler_numeric = ft.VectorAssembler(inputCols=[col], outputCol="temp_features")
+    temp_data=assembler_numeric.transform(temp_data)
+    silhouette_score=[]
+    evaluator = ClusteringEvaluator(predictionCol='prediction', featuresCol='temp_features', metricName='silhouette', distanceMeasure='squaredEuclidean')
+    for i in range(2, 5):
+
+        KMeans_algo=KMeans(featuresCol='temp_features', k=i)
+
+        KMeans_fit=KMeans_algo.fit(temp_data)
+
+        output=KMeans_fit.transform(temp_data)
+
+        score=evaluator.evaluate(output)
+
+        silhouette_score.append(score)
+
+        print("col: {}, k: {}, Silhouette Score: {}".format(col, i, score))
+    feature_result[col] = silhouette_score
