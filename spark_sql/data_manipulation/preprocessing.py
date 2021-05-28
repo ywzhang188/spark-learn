@@ -158,13 +158,15 @@ df = df.select('age', bins)
 
 from pyspark.ml.evaluation import ClusteringEvaluator
 
+data_len = new_df.count()
+print("数据量：{}".format(data_len))
 # feature_result, 记录每个特征的聚类结果
 feature_result = {}
 # bounds_col, 记录每个特征的阈值
 bounds_col = {}
 
 for col in numeric_features:
-
+    print("*"*50)
     # 计算特征的异常阈值
     quantiles = new_df.approxQuantile(col,[0.25,0.75], 0.05)
     IQR = quantiles[1] - quantiles[0]
@@ -175,24 +177,28 @@ for col in numeric_features:
     print("col: {}, floor: {}, ceil: {}".format(col, bounds_col[col][0], bounds_col[col][1]))
 
     # 根据阈值筛选数据，剔除异常值后再聚类
-    temp_data = new_df.select(col).where(F.col(col) < bounds_col[col][1])
+    temp_data = new_df.select(col).where(F.col(col) <= bounds_col[col][1])
+    print("col: {}, 异常值数据条数：{}".format(col, data_len-temp_data.count()))
     assembler_numeric = ft.VectorAssembler(inputCols=[col], outputCol="temp_features")
     temp_data=assembler_numeric.transform(temp_data)
 
     silhouette_score={}
     evaluator = ClusteringEvaluator(predictionCol='prediction', featuresCol='temp_features', metricName='silhouette', distanceMeasure='squaredEuclidean')
     if temp_data.count():
-        for i in range(2, 5):
-            KMeans_algo=KMeans(featuresCol='temp_features', k=i)
-            KMeans_fit=KMeans_algo.fit(temp_data)
-            output=KMeans_fit.transform(temp_data)
-            # 轮廓系数
-            score=evaluator.evaluate(output)
-            silhouette_score[i] = score
-            print("col: {}, k: {}, Silhouette Score: {}".format(col, i, score))
-            # 各簇的特征分布以及用户数
-            output.groupBy("prediction").agg(F.min(col), F.max(col), F.mean(col), F.count(col)).show()
-        feature_result[col] = silhouette_score
+        if bounds_col[col][0] == bounds_col[col][1]:
+            feature_result[col] = {1:1}
+        else:
+            for i in range(2, 5):
+                KMeans_algo=KMeans(featuresCol='temp_features', k=i)
+                KMeans_fit=KMeans_algo.fit(temp_data)
+                output=KMeans_fit.transform(temp_data)
+                # 轮廓系数
+                score=evaluator.evaluate(output)
+                silhouette_score[i] = score
+                print("col: {}, k: {}, Silhouette Score: {}".format(col, i, score))
+                # 各簇的特征分布以及用户数
+                output.groupBy("prediction").agg(F.min(col), F.max(col), F.mean(col), F.count(col)).show()
+            feature_result[col] = silhouette_score
     else:
         # 如果剔除了异常值后，没有数，说明该异常值的就是特征的最小值，该特征其实是只有一个unique value
         feature_result[col] = {1:1}
