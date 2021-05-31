@@ -129,6 +129,16 @@ print(bounds)
 outlier_expr = reduce(and_, [F.col(c) < bounds[c][1] for c in outlier_cols])
 df = df.where(outlier_expr)
 
+# detect outlier with standard deviation
+outlier_cols = ['csf_saletm_last_ord_tm_365', 'csf_tmsale_1m_pctatm', 'csf_tmsale_2m_pctatm', 'csf_tmsale_3m_pctatm']
+bounds = df.select(
+    [(F.mean(c)+3*F.stddev(c)).alias(c+'_ceil') for c in outlier_cols]
+    ).toPandas().to_dict()
+outlier_expr = reduce(and_, [F.col(c) < bounds[c+'_ceil'][0] for c in outlier_cols])
+new_df = df.where(outlier_expr)
+print(bounds)
+new_df.count()
+
 # calculate outlier, 3 sigma, standard deviation
 # df.select(
 #     [F.mean(c).alias(c+'_mean') for c in outlier_cols]+[F.stddev(c).alias(c+'_std') for c in outlier_cols]
