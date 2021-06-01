@@ -212,3 +212,54 @@ for col in numeric_features:
     else:
         # 如果剔除了异常值后，没有数，说明该异常值的就是特征的最小值，该特征其实是只有一个unique value
         feature_result[col] = {1:1}
+
+# 案例2
+# 3sigma, 剔除异常值后再聚类
+
+from pyspark.ml.evaluation import ClusteringEvaluator
+
+data_len = new_df.count()
+print("数据量：{}".format(data_len))
+# feature_result, 记录每个特征的聚类结果
+feature_result = {}
+# bounds_col, 记录每个特征的阈值
+bounds_col = {}
+
+for col in numeric_features:
+    print("*"*50)
+    # 按照标准差计算特征的异常阈值
+    bounds = df.select([(F.mean(col)-3*F.stddev(col)).alias(col+'_floor'), (F.mean(col)+3*F.stddev(col)).alias(col+'_ceil')]).toPandas().to_dict()
+
+    bounds_col[col] = {'floor':bounds[col+'_floor'][0], 'ceil':bounds[col+'_ceil'][0]}
+
+    outlier_expr = reduce(and_, [F.col(col) >= bounds_col[col]['floor'], F.col(col) <= bounds_col[col]['ceil']])
+
+    print("col: {}, floor: {}, ceil: {}".format(col, bounds_col[col]['floor'], bounds_col[col]['ceil']))
+
+    # 根据阈值筛选数据，剔除异常值后再聚类
+    temp_data = new_df.select(col).where(outlier_expr)
+    print("col: {}, 异常值数据条数：{}".format(col, data_len-temp_data.count()))
+    assembler_numeric = ft.VectorAssembler(inputCols=[col], outputCol="temp_features")
+    temp_data=assembler_numeric.transform(temp_data)
+
+    silhouette_score={}
+    evaluator = ClusteringEvaluator(predictionCol='prediction', featuresCol='temp_features', metricName='silhouette', distanceMeasure='squaredEuclidean')
+    if temp_data.count():
+        # 如果剔除了异常值后，该特征剩下的值只有一个unique value，作为一簇，异常值可作为单独一簇
+        if bounds_col[col]['floor'] == bounds_col[col]['ceil']:
+            feature_result[col] = {1:1}
+        else:
+            for i in range(2, 5):
+                KMeans_algo=KMeans(featuresCol='temp_features', k=i)
+                KMeans_fit=KMeans_algo.fit(temp_data)
+                output=KMeans_fit.transform(temp_data)
+                # 轮廓系数
+                score=evaluator.evaluate(output)
+                silhouette_score[i] = score
+                print("col: {}, k: {}, Silhouette Score: {}".format(col, i, score))
+                # 各簇的特征分布以及用户数
+                output.groupBy("prediction").agg(F.min(col), F.max(col), F.mean(col), F.count(col)).show()
+            feature_result[col] = silhouette_score
+    else:
+        # 如果剔除了异常值后，没有数，说明该异常值的就是特征的最小值，该特征其实是只有一个unique value
+        feature_result[col] = {1:1}
