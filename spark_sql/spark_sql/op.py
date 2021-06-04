@@ -33,3 +33,7 @@ spark.sql("""
             FROM """ + temp_view + """
          """)
 
+# 删除temp view
+spark.catalog.dropTempView("temp_view")
+
+
