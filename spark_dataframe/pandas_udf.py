@@ -133,3 +133,14 @@ def my_func(pdf, N):
 
 
 display(my_func(df_0, 3))
+
+# median
+df = spark.createDataFrame(
+    [(1, 1.0), (1, 2.0), (2, 3.0), (2, 5.0), (2, 10.0)], ("id", "price")
+)
+
+@pandas_udf("double", PandasUDFType.GROUPED_AGG)
+def median_udf(v):
+    return v.median()
+
+df.groupBy("id").agg(median_udf(df["price"])).show()
