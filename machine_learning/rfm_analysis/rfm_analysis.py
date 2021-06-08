@@ -72,6 +72,15 @@ def describe_pd(df_in, columns, deciles=False):
     new_df = new_df.round(2)
     return new_df[['summary'] + columns]
 
+def describe_dataframe(df):
+    df_describe = df.select(*numeric_features).describe().toPandas()
+    df_describe_2 = df.approxQuantile(numeric_features, [0.25, 0.5, 0.75], 0.05)
+    df_describe.loc[5] = ['25percentile']+[i[0] for i in df_describe_2]
+    df_describe.loc[6] = ['median']+[i[1] for i in df_describe_2]
+    df_describe.loc[7] = ['75percentile']+[i[2] for i in df_describe_2]
+    return df_describe
+describe_dataframe(df)
+
 
 describe_pd(rfm, cols, False)
 
