@@ -402,6 +402,9 @@ df.select('key', 'value1', 'value2', F.row_number().over(
     Window.partitionBy("key").orderBy(F.col("value1").desc())
 ).alias("index")).show()  # add index col
 
+# inde 索引
+df = df.withColumn("id", F.row_number().over(Window.orderBy(F.lit('A'))))
+
 # 统计描述
 ds.describe().show()
 
