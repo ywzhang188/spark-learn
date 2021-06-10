@@ -263,3 +263,6 @@ for col in numeric_features:
     else:
         # 如果剔除了异常值后，没有数，说明该异常值的就是特征的最小值，该特征其实是只有一个unique value
         feature_result[col] = {1:1}
+
+# QuantileDiscretizer 用于分箱
+对于空值的处理 handleInvalid = ‘keep’时，可以将空值单独分到一箱
