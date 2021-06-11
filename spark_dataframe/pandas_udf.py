@@ -144,3 +144,10 @@ def median_udf(v):
     return v.median()
 
 df.groupBy("id").agg(median_udf(df["price"])).show()
+
+# groupBy agg median of multiple columns
+@pandas_udf(FloatType(), functionType=PandasUDFType.GROUPED_AGG)
+def _func_median(v):
+    return v.median()
+expr_median = [_func_median(df[col]).alias(col+'_median') for col in numeric_features]
+df_median = df.groupBy('cluster').agg(*expr_median).toPandas()

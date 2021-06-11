@@ -499,3 +499,7 @@ df2 = (df.withColumn("word", F.explode("col3")) \
        .groupBy("col2", "word").count() \
        .groupBy("col2") \
        .agg(F.collect_list(F.struct("word", "count")).alias("word_counts")))
+
+# groupBy agg multiple columns
+expr_mean = [F.avg(col).alias(col+'_mean') for col in numeric_cols]
+df_mean = df.groupBy('cluster').agg(F.count(F.lit(1)).alias("audience_num"), *expr_mean).toPandas()
