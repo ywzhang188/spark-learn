@@ -336,6 +336,9 @@ lefts.join(rights, on='A', how='right').orderBy('A', ascending=True).show()
 lefts.join(rights, on='A', how='inner').orderBy('A', ascending=True).show()
 # full join
 lefts.join(rights, on='A', how='full').orderBy('A', ascending=True).show()
+# 差集，去除df_top
+df = df.join(df_top, ["user_log_acct"], "leftanti")
+
 
 # concat columns(合并字符串)
 my_list = [('a', 2, 3),
