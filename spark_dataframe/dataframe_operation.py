@@ -339,6 +339,8 @@ lefts.join(rights, on='A', how='full').orderBy('A', ascending=True).show()
 # 差集，去除df_top
 df = df.join(df_top, ["user_log_acct"], "leftanti")
 
+df.join(df_top, ["user_log_acct"], "leftouter").where(df_top["pick"].isNull()).drop(df_top["pick"]))
+
 
 # concat columns(合并字符串)
 my_list = [('a', 2, 3),
