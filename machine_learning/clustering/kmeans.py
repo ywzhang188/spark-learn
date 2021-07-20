@@ -141,3 +141,26 @@ def train_cluster(df, k):
     df_mean = output.groupBy('cluster').agg(F.count(F.lit(1)).alias("audience_num"), *expr_mean).toPandas()
     #     result = pd.merge(df_mean, df_median, on='cluster')
     return output, df_mean
+
+# expr计算中位数
+def train_cluster(df, k):
+    evaluator = ClusteringEvaluator(predictionCol='cluster', featuresCol='final_features_scaled', \
+                                    metricName='silhouette', distanceMeasure='squaredEuclidean')
+    kmeans = KMeans() \
+        .setK(k) \
+        .setFeaturesCol("final_features_scaled") \
+        .setPredictionCol("cluster")
+
+    kmeans_model = kmeans.fit(df)
+
+    output = kmeans_model.transform(df)
+
+    score=evaluator.evaluate(output)
+    print("k: {}, silhouette score: {}".format(k, score))
+    expr_mean = [F.avg(col).alias(col+'_mean') for col in final_features]
+
+    expr_median = [F.expr('percentile({}, array(0.5))'.format(col))[0].alias(col+'_mean') for col in final_features]
+
+    df_median = output.groupBy('cluster').agg(*expr_median).toPandas()
+    df_mean = output.groupBy('cluster').agg(F.count(F.lit(1)).alias("audience_num"), *expr_mean).toPandas()
+    return output, df_median, df_mean
