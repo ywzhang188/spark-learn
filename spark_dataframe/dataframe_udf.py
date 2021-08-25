@@ -75,3 +75,14 @@ find_a_udf = F.udf(find_a, IntegerType())
 a.groupBy('id').agg(find_a_udf(F.collect_list('value2')).alias('a_count')).show()
 # filter data if value1==1, then count a in list
 a.groupBy('id').agg(find_a_udf(F.collect_list(F.when(F.col('value1') == 1, F.col('value2')))).alias('a_count')).show()
+
+# 分词
+def jieba_f(line):
+    remove_chars_pattern = re.compile('[·’!"#$%&\'()＃！（）*+,-./:;<=>?@，：?★、…．＞【】［］《》？“”‘’[\\]^_`{|}~]+')
+    try:
+        words = [remove_chars_pattern.sub('', word) for word in jieba.lcut(line, cut_all=False)]
+        return words
+    except:
+        return []
+jieba_udf = udf(jieba_f, ArrayType(StringType()))
+douban_df = douban_df.withColumn('Words', jieba_udf(col('Comment')))
