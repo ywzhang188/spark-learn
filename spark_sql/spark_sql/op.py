@@ -36,4 +36,61 @@ spark.sql("""
 # 删除temp view
 spark.catalog.dropTempView("temp_view")
 
+# 行转列
+# 为每个评论保留top 3相似的评论
+comment_distance.createOrReplaceTempView('comment_distance')
+sql = '''
+-- 保留每个评论的top 3相似评论
+WITH 
+    comment_with_rank AS 
+    (
+        select 
+            *,
+            row_number() over (partition by ID1 order by Distance asc) Ranking
+        from 
+            comment_distance
+    ),
+-- 每个评论留1条详情
+    comment_info AS 
+    (
+        select
+            * 
+        from 
+            comment_with_rank
+        where 
+            Ranking=1
+    ),
+-- 每条评论top3拉平为列
+    comment_with_top3 AS 
+    (
+        select 
+            ID1,
+            collect_set(ID2) Similar_IDs,
+            collect_set(Movie_Name_CN2) Similar_Movie_Name_CNs,
+            collect_set(Comment2) Similar_Comments
+        from 
+            comment_with_rank
+        where 
+            Ranking <= 3
+        group by 
+            ID1
+    )
+-- 输出结果
+select
+    a.ID1 ID,
+    b.Movie_Name_CN1 Movie_Name_CN,
+    b.Comment1 Comment,
+    a.Similar_IDs,
+    a.Similar_Movie_Name_CNs,
+    a.Similar_Comments
+from 
+    comment_with_top3 a
+left join 
+    comment_info b
+on 
+    a.ID1=b.ID1
+'''
+similar_comment = spark.sql(sql)
+similar_comment.show(truncate=False)
+
 
