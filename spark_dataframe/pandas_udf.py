@@ -39,7 +39,7 @@ schema = StructType(
 @pandas_udf(schema, PandasUDFType.GROUPED_MAP)
 def subtract_mean(pdf):
     return pdf.assign(value2=pdf.value - pdf.value.mean())
-
+# Input/output are both a pandas.DataFrame
 
 df.groupby('id').apply(subtract_mean).take(2)
 
