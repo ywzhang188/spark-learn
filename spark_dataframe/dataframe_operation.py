@@ -512,3 +512,6 @@ df2 = (df.withColumn("word", F.explode("col3")) \
 # groupBy agg multiple columns
 expr_mean = [F.avg(col).alias(col+'_mean') for col in numeric_cols]
 df_mean = df.groupBy('cluster').agg(F.count(F.lit(1)).alias("audience_num"), *expr_mean).toPandas()
+
+# 计算字符串格式的时间差(时间相关)
+df = df.withColumn("days", F.datediff(F.col('ord_dt').cast('date'), F.col('add_dt').cast('date')))  # 计算天数时间差
