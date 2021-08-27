@@ -91,3 +91,8 @@ douban_df = douban_df.withColumn('Words', jieba_udf(col('Comment')))
 df = spark.createDataFrame([(None, None), (1, None), (None, 2)], ("a", "b"))
 count_empty_columns = udf(lambda row: len([x for x in row if x == None]), IntegerType())
 new_df = df.withColumn("null_count", count_empty_columns(struct([df[x] for x in df.columns])))
+
+# row wise max value
+df = spark.createDataFrame([(1, 2), (3, 0), (4, 2)], ("col1", "col2"))
+max_udf = udf(lambda x, y: max(x, y), IntegerType())
+df2 = df.withColumn("result", max_udf(df.col1, df.col2))
