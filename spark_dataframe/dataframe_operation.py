@@ -539,3 +539,9 @@ days = lambda i: i * 86400
 # w = (Window.orderBy(F.col("add_dt_timestamp").cast('long')).rangeBetween(-days(3), 0)) # 此处-days(3)。注意这里往前看三天不包含当天，其实是4天
 w = (Window.orderBy(F.col("timestampGMT").cast('long')).rangeBetween(0, days(2))) # 此处包含当天时间，例如：03-10往后两天到03-12, 其实是一共看了3天
 df = df.withColumn('rolling_average', F.avg("dollars").over(w))
+
+# group by time period, 时间段分组
+interval = 60*60*24*3  # 3天
+df.withColumn('time_interval', F.from_unixtime(F.floor(F.unix_timestamp(F.col('timestampGMT'), "yyyy-MM-dd") / interval) * interval)) \
+    .groupBy('time_interval') \
+    .agg(F.collect_list("id").alias("id_list")).show()
