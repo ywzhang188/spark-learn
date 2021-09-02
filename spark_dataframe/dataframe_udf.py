@@ -96,3 +96,8 @@ new_df = df.withColumn("null_count", count_empty_columns(struct([df[x] for x in 
 df = spark.createDataFrame([(1, 2), (3, 0), (4, 2)], ("col1", "col2"))
 max_udf = udf(lambda x, y: max(x, y), IntegerType())
 df2 = df.withColumn("result", max_udf(df.col1, df.col2))
+
+# group by time period, 时间段分组
+df = df.withColumn("date_index", F.dense_rank().over(Window.orderBy(F.col('timestampGMT'))))
+date_bucket_func = udf(lambda x: x//3 if x%3 else x//3-1)
+df = df.withColumn("date_bucket", date_bucket_func(F.col('date_index')))

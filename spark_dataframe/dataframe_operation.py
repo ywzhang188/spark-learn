@@ -545,3 +545,8 @@ interval = 60*60*24*3  # 3天
 df.withColumn('time_interval', F.from_unixtime(F.floor(F.unix_timestamp(F.col('timestampGMT'), "yyyy-MM-dd") / interval) * interval)) \
     .groupBy('time_interval') \
     .agg(F.collect_list("id").alias("id_list")).show()
+
+# group by time period, 时间段分组2
+df = df.withColumn("date_index", F.dense_rank().over(Window.orderBy(F.col('timestampGMT'))))
+date_bucket_func = udf(lambda x: x//3 if x%3 else x//3-1)
+df = df.withColumn("date_bucket", date_bucket_func(F.col('date_index')))
