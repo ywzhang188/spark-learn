@@ -92,6 +92,22 @@ ds.withColumn('concat', F.concat('col1', 'col2')).show()
 # 分组统计按#拼接字符串
 df.groupBy("col1").agg(F.concat_ws("#", F.collect_list(F.col('col2'))).alias("col2_set"))
 
+# 分组统计，合并列表
+ds2 = spark.createDataFrame([(1, [1, 2, 3]), (1, [4, 5, 6]) , (2,[2]),(2,[3])], ["store","values"])
+# 方法1（思路：先合并，再flatten）
+ds2 = ds2.groupBy("store").agg(F.collect_list("values").alias('values_list'))
+ds2 = ds2.withColumn("flatten_array", F.flatten(F.col("values_list")))
+ds2.show()
+# 方法2, rdd, map
+ds2.rdd.map(lambda r: (r.store, r.values)).reduceByKey(lambda x,y: x + y).toDF(['store','values']).show()
+# 方法3, udf
+import functools
+def concat_list(val):
+    return functools.reduce(lambda x, y:x+y, val)
+concat_list_udf = F.udf(concat_list, ArrayType(IntegerType()))
+ds2 = ds2.groupBy("store").agg(concat_list_udf(F.collect_list("values")).alias("values_list"))
+ds2.show()
+
 # groupBy
 ds.groupby(['col1']).agg({'col2':'min', 'col3':'avg'}).show()
 
