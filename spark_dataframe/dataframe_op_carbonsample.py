@@ -89,6 +89,9 @@ col_name = ['col1', 'col2', 'col3']
 ds = spark.createDataFrame(my_list, schema=col_name)
 ds.withColumn('concat', F.concat('col1', 'col2')).show()
 
+# 分组统计按#拼接字符串
+df.groupBy("col1").agg(F.concat_ws("#", F.collect_list(F.col('col2'))).alias("col2_set"))
+
 # groupBy
 ds.groupby(['col1']).agg({'col2':'min', 'col3':'avg'}).show()
 
