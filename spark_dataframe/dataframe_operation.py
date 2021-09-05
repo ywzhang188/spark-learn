@@ -520,6 +520,9 @@ df = df.withColumn("days", F.datediff(F.col('ord_dt').cast('date'), F.col('add_d
 df = spark.createDataFrame([('1997-02-10',)], ['d'])
 df.select(F.last_day(df.d).alias('date')).show()
 
+# 字符串转为时间
+test_df = add_df.withColumn("add_dt", F.col("add_dt").cast("date"))
+
 # 时间窗口，移动平均
 from pyspark.sql import functions as F
 from pyspark.sql.window import Window
