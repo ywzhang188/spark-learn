@@ -522,6 +522,9 @@ df.select(F.last_day(df.d).alias('date')).show()
 
 # 字符串转为时间
 test_df = add_df.withColumn("add_dt", F.col("add_dt").cast("date"))
+# 时间转回字符串
+add_df = add_df.withColumn("window_end", F.date_format('window_end', "yyyy-MM-dd"))
+
 
 # 时间窗口，移动平均
 from pyspark.sql import functions as F
